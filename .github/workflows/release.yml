@@ -33,8 +33,13 @@ jobs:
             release/*.exe
             release/*.dmg
             release/*.zip
+            release/*.yml
+            release/*.blockmap
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.{exe,dmg,zip}
+          files: |
+            release/*.{exe,dmg,zip}
+            release/*.yml
+            release/*.blockmap
