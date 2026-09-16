@@ -1,0 +1,181 @@
+.shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--bg-1);
+    border-right: 1px solid var(--line-1);
+    display: flex;
+    flex-direction: column;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 18px 16px;
+}
+
+.logo {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--r-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.brandName {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-0);
+    line-height: 1.25;
+}
+
+.brandSub {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    letter-spacing: 0.02em;
+}
+
+.nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    overflow-y: auto;
+}
+
+.navBottom {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.navItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px 8px 14px;
+    border-radius: var(--r-sm);
+    color: var(--fg-1);
+    font-size: var(--fs-xs);
+    text-align: left;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+
+.navItem:hover {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+}
+
+.navItem::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 2px;
+    height: 60%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: transform var(--t-base) var(--ease-out);
+}
+
+.navItem.active {
+    background: var(--bg-active);
+    color: var(--fg-0);
+}
+
+.navItem.active::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+.navItem svg {
+    flex-shrink: 0;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--line-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--fg-3);
+    flex-shrink: 0;
+}
+
+.dot.on {
+    background: var(--accent);
+    animation: pulse-dot 2s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    50% { box-shadow: 0 0 0 5px transparent; }
+}
+
+.main {
+    flex: 1;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.tabPane {
+    height: 100%;
+}
+
+.statusGuild {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    margin-top: 1px;
+}
+
+.boot {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.initial {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.initialBrand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--line-1);
+    background: var(--bg-1);
+}
+
+.initialBody {
+    flex: 1;
+    overflow: hidden;
+}

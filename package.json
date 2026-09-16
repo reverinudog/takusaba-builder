@@ -1,0 +1,47 @@
+{
+  "name": "session-room-builder",
+  "version": "1.0.0",
+  "description": "TRPG 卓の Discord チャンネルを一発で作るデスクトップツール",
+  "main": "build/main.cjs",
+  "author": "reverinudog",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "start:prod": "node dist/src/server.js",
+    "dev": "concurrently \"ts-node src/server.ts\" \"npm run client\"",
+    "client": "cd web && npm run dev",
+    "build": "npm run build:web && npm run build:server",
+    "build:web": "cd web && npm run build",
+    "build:server": "tsc",
+    "bundle:server": "esbuild src/server.ts --bundle --platform=node --target=node24 --format=cjs --outfile=build/server.cjs",
+    "bundle:main": "esbuild electron/main.ts --bundle --platform=node --target=node24 --format=cjs --external:electron --outfile=build/main.cjs",
+    "build:app": "npm run build:web && npm run bundle:server && npm run bundle:main",
+    "electron:dev": "npm run build:app && electron .",
+    "dist:win": "npm run build:app && electron-builder --win",
+    "dist:mac": "npm run build:app && electron-builder --mac",
+    "icon": "node scripts/make-icon.cjs"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@discordjs/rest": "^2.6.0",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^25.3.0",
+    "concurrently": "^9.2.1",
+    "discord-api-types": "^0.38.39",
+    "dotenv": "^17.3.1",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.16.0",
+    "esbuild": "^0.28.2",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "playwright": "^1.63.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reverinudog/session-room-builder.git"
+  },
+  "homepage": "https://github.com/reverinudog/session-room-builder"
+}

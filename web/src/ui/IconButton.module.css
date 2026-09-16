@@ -1,0 +1,26 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-sm);
+    color: var(--fg-2);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all var(--t-fast) var(--ease-out);
+    flex-shrink: 0;
+}
+
+.sm { width: 30px; height: 30px; }
+.md { width: 36px; height: 36px; }
+
+.btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+    border-color: var(--line-1);
+}
+
+.danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-color: var(--danger);
+}

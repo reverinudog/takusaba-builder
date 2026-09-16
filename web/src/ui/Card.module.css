@@ -1,0 +1,41 @@
+.card {
+    background: var(--bg-1);
+    border: 1px solid var(--line-1);
+    border-radius: var(--r-lg);
+    padding: 20px;
+}
+
+.flush {
+    padding: 0;
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-0);
+    min-width: 0;
+}
+
+.headerContent svg {
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}

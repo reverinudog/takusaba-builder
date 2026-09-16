@@ -1,0 +1,39 @@
+.wrap {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+}
+
+.select {
+    width: 100%;
+    appearance: none;
+    background: var(--bg-0);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    color: var(--fg-0);
+    padding: 9px 30px 9px 12px;
+    min-height: 38px;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.invalid,
+.invalid:focus {
+    border-color: var(--danger);
+}
+
+.chevron {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--fg-2);
+    pointer-events: none;
+}

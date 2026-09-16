@@ -1,0 +1,26 @@
+.textarea {
+    width: 100%;
+    background: var(--bg-0);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    color: var(--fg-0);
+    padding: 9px 12px;
+    font-size: var(--fs-sm);
+    resize: vertical;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.textarea::placeholder {
+    color: var(--fg-3);
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.invalid,
+.invalid:focus {
+    border-color: var(--danger);
+}

@@ -1,0 +1,92 @@
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 4px;
+    color: var(--fg-2);
+    font-size: var(--fs-xs);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item {
+    animation: rise-in var(--t-slow) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 120ms);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+}
+
+.mark {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ok {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+.ng {
+    background: var(--danger);
+    color: #fff;
+}
+
+.drawCheck path {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    animation: draw-check var(--t-slow) var(--ease-out) 0.15s forwards;
+}
+
+.label {
+    font-size: var(--fs-xs);
+    color: var(--fg-0);
+    font-weight: 500;
+}
+
+.detail {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    margin-left: auto;
+    text-align: right;
+}
+
+.remedy {
+    margin: 2px 4px 8px 34px;
+    padding: 10px 12px;
+    background: var(--danger-soft);
+    border-radius: var(--r-md);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+    line-height: 1.6;
+}
+
+.remedyLabel {
+    display: block;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--danger);
+    margin-bottom: 2px;
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes draw-check {
+    to { stroke-dashoffset: 0; }
+}

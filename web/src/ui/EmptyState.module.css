@@ -1,0 +1,31 @@
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 48px 24px;
+    text-align: center;
+    height: 100%;
+}
+
+.icon {
+    color: var(--fg-3);
+    display: flex;
+    margin-bottom: 4px;
+}
+
+.title {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-1);
+}
+
+.desc {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+}
+
+.action {
+    margin-top: 12px;
+}

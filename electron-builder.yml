@@ -1,0 +1,37 @@
+appId: com.github.reverinudog.sessionroombuilder
+productName: Session Room Builder
+directories:
+  output: release
+  buildResources: build-resources
+files:
+  - "build/**/*"
+  - "web/dist/**/*"
+  - "package.json"
+  - "!**/*.map"
+asar: true
+npmRebuild: false
+win:
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+  icon: build-resources/icon.png
+  artifactName: SessionRoomBuilder-Setup-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  createDesktopShortcut: true
+  shortcutName: Session Room Builder
+  installerLanguages: [ja_JP]
+  language: "1041"
+mac:
+  target:
+    - target: dmg
+      arch: [universal]
+    - target: zip
+      arch: [universal]
+  icon: build-resources/icon.png
+  category: public.app-category.utilities
+  identity: null
+  hardenedRuntime: false
+  artifactName: SessionRoomBuilder-${version}-mac.${ext}

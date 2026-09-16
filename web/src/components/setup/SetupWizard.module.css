@@ -1,0 +1,346 @@
+.layout {
+    display: flex;
+    gap: 32px;
+    padding: 28px 32px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.layoutFull {
+    composes: layout;
+    justify-content: center;
+}
+
+.rail {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding-top: 8px;
+    width: 190px;
+}
+
+.railItem {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 28px;
+}
+
+.railItem:last-child {
+    padding-bottom: 0;
+}
+
+.railItem::after {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 30px;
+    bottom: 2px;
+    width: 2px;
+    background: var(--line-1);
+    transition: background var(--t-base);
+}
+
+.railItem:last-child::after {
+    display: none;
+}
+
+.railItem.done::after {
+    background: var(--accent);
+}
+
+.railNum {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    background: var(--bg-1);
+    color: var(--fg-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: all var(--t-base);
+    z-index: 1;
+}
+
+.railItem.done .railNum {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+}
+
+.railItem.current .railNum {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.railLabel {
+    padding-top: 5px;
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    transition: color var(--t-base);
+}
+
+.railItem.done .railLabel,
+.railItem.current .railLabel {
+    color: var(--fg-0);
+}
+
+.body {
+    flex: 1;
+    max-width: 720px;
+    min-width: 0;
+}
+
+.stepCard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stepTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lead {
+    color: var(--fg-1);
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+}
+
+.prepList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.prepList li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+}
+
+.prepList svg {
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    counter-reset: step;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 12px;
+    font-size: var(--fs-xs);
+    line-height: 1.7;
+}
+
+.steps li::before {
+    content: counter(step);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    color: var(--fg-1);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.stepBody {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.stepMain {
+    color: var(--fg-0);
+    font-weight: 500;
+}
+
+.stepMain strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.stepNote {
+    color: var(--fg-2);
+    font-size: var(--fs-xs);
+}
+
+.tokenRow {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.tokenInput {
+    flex: 1;
+    position: relative;
+}
+
+.eyeBtn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.errorMsg {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    margin-top: 4px;
+    word-break: break-all;
+}
+
+.botCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-accent);
+    border-radius: var(--r-md);
+    animation: scale-in var(--t-base) var(--ease-out) both;
+}
+
+.botName {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-0);
+}
+
+.botMeta {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+}
+
+.guildGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.guildCard {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-1);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t-fast);
+    min-width: 0;
+}
+
+.guildCard:hover {
+    border-color: var(--line-2);
+}
+
+.guildCard.selected {
+    background: var(--accent-soft);
+    border-color: var(--line-accent);
+}
+
+.guildName {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.guildCheck {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guildToolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-1);
+}
+
+.footerRight {
+    display: flex;
+    gap: 8px;
+}
+
+.reconfigRow {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.portalNote {
+    margin-top: 6px;
+}
+
+.botInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.recheckRow {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.startRow {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+}
+
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96) translateY(6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
