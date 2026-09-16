@@ -1,7 +1,7 @@
 {
   "name": "takusaba-builder",
-  "version": "1.1.0",
-  "description": "TRPG 卓用の Discord チャンネル一式をテンプレから一発で作る卓鯖ビルダー",
+  "version": "1.1.1",
+  "description": "TRPG 卓用の Discord チャンネル一式をプリセットから一発で作る卓鯖ビルダー",
   "main": "build/main.cjs",
   "author": "reverinudog",
   "license": "MIT",
@@ -19,7 +19,8 @@
     "electron:dev": "npm run build:app && electron .",
     "dist:win": "npm run build:app && electron-builder --win",
     "dist:mac": "npm run build:app && electron-builder --mac",
-    "icon": "node scripts/make-icon.cjs"
+    "icon": "node scripts/make-icon.cjs",
+    "booth": "node scripts/make-booth-zip.mjs"
   },
   "keywords": [],
   "devDependencies": {

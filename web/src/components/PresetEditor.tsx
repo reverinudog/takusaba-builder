@@ -205,7 +205,7 @@ export default function PresetEditor() {
                     <EmptyState
                         icon={<LayoutList size={28} />}
                         title="プリセットがありません"
-                        description="卓で毎回使うチャンネル構成をテンプレとして登録できます"
+                        description="卓で毎回使うチャンネル構成をプリセットとして登録できます"
                     />
                 ) : (
                     <div className={`${styles.list} stagger`}>
@@ -248,7 +248,7 @@ export default function PresetEditor() {
                                         className={styles.nameInput}
                                         value={editingPreset.presetName}
                                         onChange={e => setEditingPreset({ ...editingPreset, presetName: e.target.value })}
-                                        placeholder="例：クトゥルフ 1卓用テンプレ"
+                                        placeholder="例：クトゥルフ 1卓用"
                                     />
                                 </Field>
 
