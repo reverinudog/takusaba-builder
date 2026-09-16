@@ -244,5 +244,22 @@ export const ko: Messages = {
     'wiz.s4.recheck': '다시 체크',
     'wiz.s4.start': '시작하기',
     'wiz.next1': '토큰을 복사했으면 다음으로',
-    'wiz.next3': '이 서버로 설정 저장'
+    'wiz.next3': '이 서버로 설정 저장',
+
+    // Updates
+    'update.title': '버전',
+    'update.idle': '아직 업데이트를 확인하지 않았습니다',
+    'update.unsupported': '개발 모드에서는 업데이트를 확인하지 않습니다',
+    'update.check': '업데이트 확인',
+    'update.checking': '확인 중…',
+    'update.latest': '최신 버전입니다',
+    'update.available': 'v{latest} 를 사용할 수 있습니다',
+    'update.download': '업데이트 다운로드',
+    'update.downloading': '다운로드 중… {n}%',
+    'update.restart': '재시작하여 업데이트',
+    'update.restartNote': '다음 실행 시 자동으로 적용됩니다',
+    'update.openPage': '다운로드 페이지 열기',
+    'update.error': '업데이트 확인에 실패했습니다',
+    'update.recheck': '다시 확인',
+    'update.toast': '새 버전 v{latest} 가 있습니다. 도움말에서 업데이트할 수 있습니다.'
 };

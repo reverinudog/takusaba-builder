@@ -244,5 +244,22 @@ export const zhHant: Messages = {
     'wiz.s4.recheck': '重新檢查',
     'wiz.s4.start': '開始使用',
     'wiz.next1': '複製好權杖後下一步',
-    'wiz.next3': '以此伺服器儲存設定'
+    'wiz.next3': '以此伺服器儲存設定',
+
+    // Updates
+    'update.title': '版本',
+    'update.idle': '尚未檢查更新',
+    'update.unsupported': '開發模式下不檢查更新',
+    'update.check': '檢查更新',
+    'update.checking': '正在檢查…',
+    'update.latest': '已是最新版本',
+    'update.available': 'v{latest} 可用',
+    'update.download': '下載更新',
+    'update.downloading': '下載中… {n}%',
+    'update.restart': '重新啟動以更新',
+    'update.restartNote': '下次啟動時也會自動套用',
+    'update.openPage': '開啟下載頁面',
+    'update.error': '檢查更新失敗',
+    'update.recheck': '重新檢查',
+    'update.toast': '新版本 v{latest} 可用。可在說明中更新。'
 };

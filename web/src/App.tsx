@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Hash, LayoutList, Play, Trash2, Settings2, LifeBuoy, Languages } from 'lucide-react';
 import PresetEditor from './components/PresetEditor';
 import Runner from './components/Runner';
@@ -68,6 +68,33 @@ function Shell() {
     const [statusLoaded, setStatusLoaded] = useState(false);
     const [langPicked, setLangPicked] = useState(false);
     const [langModalOpen, setLangModalOpen] = useState(false);
+    const [updatePending, setUpdatePending] = useState(false);
+    const updateNotifiedRef = useRef<string | null>(null);
+    const updatePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Poll update status: first check 30s after startup, then every 10 minutes
+    useEffect(() => {
+        const poll = () => api.getUpdateStatus().then(u => {
+            const ready = u.status === 'available' || u.status === 'downloaded';
+            setUpdatePending(ready);
+            if (ready) {
+                const key = `${u.status}:${u.latestVersion ?? ''}`;
+                if (updateNotifiedRef.current !== key) {
+                    updateNotifiedRef.current = key;
+                    toast(t('update.toast', { latest: u.latestVersion ?? '' }), 'info');
+                }
+            }
+        }).catch(() => { });
+        const first = setTimeout(() => {
+            poll();
+            updatePollRef.current = setInterval(poll, 10 * 60 * 1000);
+        }, 30000);
+        return () => {
+            clearTimeout(first);
+            if (updatePollRef.current) clearInterval(updatePollRef.current);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const refreshStatus = () =>
         api.getSetupStatus()
@@ -160,6 +187,7 @@ function Shell() {
         >
             {item.icon}
             {item.label}
+            {item.id === 'help' && updatePending && <span className={styles.navDot} />}
         </button>
     );
 

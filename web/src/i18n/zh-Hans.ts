@@ -244,5 +244,22 @@ export const zhHans: Messages = {
     'wiz.s4.recheck': '重新检查',
     'wiz.s4.start': '开始使用',
     'wiz.next1': '复制好令牌后下一步',
-    'wiz.next3': '以此服务器保存设置'
+    'wiz.next3': '以此服务器保存设置',
+
+    // Updates
+    'update.title': '版本',
+    'update.idle': '尚未检查更新',
+    'update.unsupported': '开发模式下不检查更新',
+    'update.check': '检查更新',
+    'update.checking': '正在检查…',
+    'update.latest': '已是最新版本',
+    'update.available': 'v{latest} 可用',
+    'update.download': '下载更新',
+    'update.downloading': '下载中… {n}%',
+    'update.restart': '重启以更新',
+    'update.restartNote': '下次启动时也会自动应用',
+    'update.openPage': '打开下载页面',
+    'update.error': '检查更新失败',
+    'update.recheck': '重新检查',
+    'update.toast': '新版本 v{latest} 可用。可在帮助中更新。'
 };

@@ -244,5 +244,22 @@ export const en: Messages = {
     'wiz.s4.recheck': 'Re-check',
     'wiz.s4.start': 'Get started',
     'wiz.next1': 'Next after copying the token',
-    'wiz.next3': 'Save settings for this server'
+    'wiz.next3': 'Save settings for this server',
+
+    // Updates
+    'update.title': 'Version',
+    'update.idle': 'No update check has run yet',
+    'update.unsupported': 'Update checks are not performed in development mode',
+    'update.check': 'Check for updates',
+    'update.checking': 'Checking…',
+    'update.latest': 'You are up to date',
+    'update.available': 'v{latest} is available',
+    'update.download': 'Download update',
+    'update.downloading': 'Downloading… {n}%',
+    'update.restart': 'Restart to update',
+    'update.restartNote': 'It will also be applied automatically on the next launch',
+    'update.openPage': 'Open download page',
+    'update.error': 'Failed to check for updates',
+    'update.recheck': 'Re-check',
+    'update.toast': 'A new version v{latest} is available. You can update it from Help.'
 };

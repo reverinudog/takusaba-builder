@@ -155,6 +155,28 @@ export const openDataDir = async (): Promise<{ ok: boolean }> => {
     return request('/system/open-data-dir', { method: 'POST' });
 };
 
+export type UpdateState = {
+    status: 'idle' | 'unsupported' | 'checking' | 'not-available' | 'available' | 'downloading' | 'downloaded' | 'error';
+    currentVersion: string;
+    latestVersion?: string;
+    progress?: number;
+    error?: string;
+    manual?: boolean;
+    releaseUrl: string;
+};
+export const getUpdateStatus = async (): Promise<UpdateState> => {
+    return request('/system/update-status');
+};
+export const checkUpdate = async (): Promise<{ ok: true }> => {
+    return request('/system/update/check', { method: 'POST' });
+};
+export const downloadUpdate = async (): Promise<{ ok: true }> => {
+    return request('/system/update/download', { method: 'POST' });
+};
+export const installUpdate = async (): Promise<{ ok: true }> => {
+    return request('/system/update/install', { method: 'POST' });
+};
+
 export type RunDeleteResult = { categoryId: string, success: boolean, error?: string }[];
 export const runDelete = async (categoryIds: string[]): Promise<RunDeleteResult> => {
     return request('/run/delete', {

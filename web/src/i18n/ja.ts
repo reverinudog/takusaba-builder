@@ -253,5 +253,22 @@ export const ja = {
     'wiz.s4.recheck': '再チェック',
     'wiz.s4.start': 'はじめる',
     'wiz.next1': 'トークンをコピーしたら次へ',
-    'wiz.next3': 'このサーバーで設定を保存'
+    'wiz.next3': 'このサーバーで設定を保存',
+
+    // Updates
+    'update.title': 'バージョン',
+    'update.idle': '更新はまだ確認されていません',
+    'update.unsupported': '開発モードでは更新確認を行いません',
+    'update.check': '更新を確認',
+    'update.checking': '確認中…',
+    'update.latest': '最新です',
+    'update.available': 'v{latest} が利用できます',
+    'update.download': '更新をダウンロード',
+    'update.downloading': 'ダウンロード中… {n}%',
+    'update.restart': '再起動して更新',
+    'update.restartNote': '次回起動時にも自動で適用されます',
+    'update.openPage': 'ダウンロードページを開く',
+    'update.error': '更新の確認に失敗しました',
+    'update.recheck': '再確認',
+    'update.toast': '新しいバージョン v{latest} があります。ヘルプから更新できます'
 } as const;

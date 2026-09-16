@@ -1,6 +1,8 @@
 import { app, BrowserWindow, Menu, dialog, shell } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
+import { setUpdateState, updateEvents } from '../src/updates';
 
 // These must be set BEFORE src/paths.ts is evaluated (it reads env at import
 // time), so the server module is loaded lazily via dynamic import below.
@@ -11,6 +13,8 @@ process.env.SRB_APP_ROOT = app.isPackaged
     ? app.getPath('userData') // %APPDATA%/TakusabaBuilder (win) / ~/Library/Application Support/TakusabaBuilder (mac)
     : path.join(__dirname, '..'); // dev `electron .`: repository root
 process.env.SRB_WEB_DIST = path.join(app.getAppPath(), 'web/dist');
+// Lets the bundled server distinguish packaged vs dev before it initializes state
+process.env.SRB_PACKAGED = String(app.isPackaged);
 
 if (process.platform === 'darwin') {
     // Minimal menu — Edit roles are needed for copy/paste in the token field
@@ -79,6 +83,87 @@ const dialogStrings = () => {
 
 let closeServer: (() => void) | null = null;
 
+// --- Auto-update -------------------------------------------------------------
+// Windows: electron-updater via GitHub Releases (latest.yml). macOS: unsigned
+// builds can't use electron-updater, so we poll the GitHub API and send the
+// user to the releases page instead (state.manual = true).
+
+const semverGt = (a: string, b: string): boolean => {
+    const pa = a.replace(/^v/, '').split('.').map(n => parseInt(n, 10) || 0);
+    const pb = b.replace(/^v/, '').split('.').map(n => parseInt(n, 10) || 0);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+        if (d !== 0) return d > 0;
+    }
+    return false;
+};
+
+const checkMacUpdate = async () => {
+    setUpdateState({ status: 'checking' });
+    try {
+        const res = await fetch('https://api.github.com/repos/reverinudog/takusaba-builder/releases/latest', {
+            headers: { 'User-Agent': 'takusaba-builder', 'Accept': 'application/vnd.github+json' }
+        });
+        if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+        const rel: any = await res.json();
+        const latest = String(rel.tag_name ?? '').replace(/^v/, '');
+        if (latest && semverGt(latest, app.getVersion())) {
+            setUpdateState({ status: 'available', latestVersion: latest, manual: true });
+        } else {
+            setUpdateState({ status: 'not-available', latestVersion: latest || undefined });
+        }
+    } catch (e) {
+        setUpdateState({ status: 'error', error: e instanceof Error ? e.message : String(e) });
+    }
+};
+
+const setupUpdates = () => {
+    setUpdateState({ currentVersion: app.getVersion() });
+
+    if (!app.isPackaged) {
+        setUpdateState({ status: 'unsupported' });
+        return;
+    }
+
+    if (process.platform === 'win32') {
+        autoUpdater.autoDownload = false;
+        autoUpdater.autoInstallOnAppQuit = true;
+        autoUpdater.allowPrerelease = false;
+        autoUpdater.on('checking-for-update', () => setUpdateState({ status: 'checking' }));
+        autoUpdater.on('update-available', i => setUpdateState({ status: 'available', latestVersion: i.version, manual: false }));
+        autoUpdater.on('update-not-available', i => setUpdateState({ status: 'not-available', latestVersion: (i as any)?.version }));
+        autoUpdater.on('download-progress', p => setUpdateState({ status: 'downloading', progress: Math.round(p.percent) }));
+        autoUpdater.on('update-downloaded', i => setUpdateState({ status: 'downloaded', latestVersion: i.version }));
+        const onUpdaterError = (e: unknown) => {
+            const msg = e instanceof Error ? e.message : String(e);
+            // A release without update metadata (e.g. uploaded manually) means no update is installable
+            if (msg.includes('Cannot find latest.yml')) {
+                setUpdateState({ status: 'not-available' });
+            } else {
+                setUpdateState({ status: 'error', error: msg });
+            }
+        };
+        autoUpdater.on('error', onUpdaterError);
+        updateEvents.on('check', () => {
+            autoUpdater.checkForUpdates().catch(onUpdaterError);
+        });
+        updateEvents.on('download', () => {
+            autoUpdater.downloadUpdate().catch(onUpdaterError);
+        });
+        updateEvents.on('install', () => autoUpdater.quitAndInstall(false, true));
+    } else if (process.platform === 'darwin') {
+        updateEvents.on('check', () => { checkMacUpdate(); });
+    } else {
+        setUpdateState({ status: 'unsupported' });
+        return;
+    }
+
+    // First check shortly after the window is shown, then every 6 hours
+    setTimeout(() => updateEvents.emit('check'), 5000);
+    setInterval(() => updateEvents.emit('check'), 6 * 60 * 60 * 1000);
+};
+
+
 const createWindow = async () => {
     const { startServer } = await import('../src/server');
     const { port, close } = await startServer(0);
@@ -138,6 +223,8 @@ const createWindow = async () => {
     }
 
     win.loadURL(`http://127.0.0.1:${port}`);
+
+    win.once('ready-to-show', () => setupUpdates());
 };
 
 app.whenReady().then(async () => {

@@ -115,6 +115,40 @@
     line-height: 1.8;
 }
 
+.updateRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.updateText {
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+}
+
+.updateNote {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    margin-top: 8px;
+}
+
+.progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-1);
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width var(--t-base) var(--ease-out);
+}
+
 .mono {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);

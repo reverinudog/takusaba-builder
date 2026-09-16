@@ -11,7 +11,17 @@ import { fetchMembers } from './discord/client2';
 import setupRouter from './setup';
 import { isConfigured } from './config';
 import { ensureSeedPresets } from './seed';
+import { getUpdateState, setUpdateState, updateEvents } from './updates';
 import { DATA_DIR, ASSETS_DIR, WEB_DIST } from './paths';
+
+// Dev mode has no Electron main process to stamp the version — read it from package.json
+try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
+    setUpdateState({
+        currentVersion: pkg.version ?? '',
+        status: process.env.SRB_PACKAGED === 'true' ? 'idle' : 'unsupported'
+    });
+} catch { /* leave empty */ }
 
 dotenv.config();
 
@@ -217,6 +227,23 @@ app.post('/api/system/open-data-dir', (req, res) => {
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
+});
+
+// Update status / control — the Electron main process subscribes to updateEvents
+app.get('/api/system/update-status', (req, res) => {
+    res.json(getUpdateState());
+});
+app.post('/api/system/update/check', (req, res) => {
+    updateEvents.emit('check');
+    res.json({ ok: true });
+});
+app.post('/api/system/update/download', (req, res) => {
+    updateEvents.emit('download');
+    res.json({ ok: true });
+});
+app.post('/api/system/update/install', (req, res) => {
+    updateEvents.emit('install');
+    res.json({ ok: true });
 });
 
 
