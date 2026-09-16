@@ -71,10 +71,13 @@ router.get('/status', async (req, res) => {
     });
 });
 
+const SUPPORTED_LANGUAGES = ['ja', 'en', 'ko', 'zh-Hans', 'zh-Hant'];
+const isSnowflake = (v: unknown): v is string => typeof v === 'string' && /^\d{17,20}$/.test(v);
+
 router.post('/language', (req, res) => {
     const language = req.body?.language;
-    if (typeof language !== 'string' || !language) {
-        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', message: 'language is required' });
+    if (typeof language !== 'string' || !SUPPORTED_LANGUAGES.includes(language)) {
+        return res.status(400).json({ ok: false, code: 'INVALID_LANGUAGE', message: 'unsupported language' });
     }
     updateConfig({ language });
     res.json({ ok: true });
@@ -82,7 +85,7 @@ router.post('/language', (req, res) => {
 
 router.post('/verify-token', (req, res) => handleDiscord(res, async () => {
     const token = req.body?.token;
-    if (!token || typeof token !== 'string') {
+    if (!token || typeof token !== 'string' || token.length > 200) {
         return res.json({ ok: false, code: 'INVALID_TOKEN', message: 'Token is empty' });
     }
     const rest = withToken(token);
@@ -104,7 +107,7 @@ router.post('/verify-token', (req, res) => handleDiscord(res, async () => {
 
 router.post('/guilds', (req, res) => handleDiscord(res, async () => {
     const token = req.body?.token;
-    if (!token || typeof token !== 'string') {
+    if (!token || typeof token !== 'string' || token.length > 200) {
         return res.json({ ok: false, code: 'INVALID_TOKEN', message: 'Token is empty' });
     }
     const rest = withToken(token);
@@ -118,8 +121,8 @@ router.post('/guilds', (req, res) => handleDiscord(res, async () => {
 router.post('/save', (req, res) => {
     try {
         const { token, guildId } = req.body ?? {};
-        if (!token || !guildId) {
-            return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', message: 'token and guildId are required' });
+        if (typeof token !== 'string' || token.length < 1 || token.length > 200 || !isSnowflake(guildId)) {
+            return res.status(400).json({ ok: false, code: 'INVALID_FIELDS', message: 'token must be 1-200 chars and guildId must be a Discord snowflake' });
         }
         saveConfig({ token, guildId });
         guildNameCache = null;

@@ -10,6 +10,7 @@
 - `data/presets.json` and `data/assets/` are the owner's live data — do not modify or stage.
 - CSS Modules localise `animation-name`; define `@keyframes` inside the same `.module.css` (global keyframes in `index.css` are only reachable via global classes like `.anim-rise`).
 - `data/config.json` (gitignored) holds the bot token; `.env` is a fallback only.
+- Packaged builds store the token encrypted (`tokenEnc`, Electron safeStorage); dev/ts-node runs keep plaintext `token`; an encrypted config read by a dev run shows as unconfigured. `SRB_ENCRYPT_TOKEN=1` forces encryption in `electron:dev`.
 - The `managed_by=local_preset_tool` channel-topic marker is a compatibility contract — do not rename.
 
 ## Electron

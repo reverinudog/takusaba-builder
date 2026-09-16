@@ -267,6 +267,7 @@ export default function PresetEditor() {
                                     <Input
                                         className={styles.nameInput}
                                         value={editingPreset.presetName}
+                                        maxLength={30}
                                         onChange={e => setEditingPreset({ ...editingPreset, presetName: e.target.value })}
                                         placeholder={t('preset.namePh')}
                                     />

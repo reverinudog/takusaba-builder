@@ -37,13 +37,40 @@ const storage = multer.diskStorage({
         cb(null, ASSETS_DIR);
     },
     filename: (req, file, cb) => {
-        // preserve extension
-        const ext = path.extname(file.originalname);
+        // preserve extension (sanitized to a safe charset)
+        const raw = path.extname(file.originalname).toLowerCase();
+        const ext = /^\.[a-z0-9]{1,10}$/.test(raw) ? raw : '';
         const id = randomUUID();
         cb(null, `${id}${ext}`);
     }
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 25 * 1024 * 1024, files: 1 } });
+
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+const hostnameOf = (hostHeader: string) => { try { return new URL(`http://${hostHeader}`).hostname; } catch { return ''; } };
+const isLocalHost = (h: string) => LOCAL_HOSTS.has(h);
+app.use((req, res, next) => {
+    if (!isLocalHost(hostnameOf(req.headers.host ?? ''))) return res.status(403).json({ error: 'FORBIDDEN_HOST' });
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        const origin = req.headers.origin;
+        if (origin) {
+            let ok = false;
+            try { const u = new URL(origin); ok = u.protocol === 'http:' && isLocalHost(u.hostname); } catch { /* invalid */ }
+            if (!ok) return res.status(403).json({ error: 'FORBIDDEN_ORIGIN' });
+        }
+    }
+    next();
+});
+
+const SPA_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.discordapp.com; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'";
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    if (req.path === '/' || req.path.endsWith('.html')) {
+        res.setHeader('Content-Security-Policy', SPA_CSP);
+    }
+    next();
+});
 
 app.use(express.json());
 
@@ -51,7 +78,13 @@ app.use(express.json());
 app.use(express.static(WEB_DIST));
 
 // Serve assets
-app.use('/assets', express.static(ASSETS_DIR));
+app.use('/assets', express.static(ASSETS_DIR, {
+    dotfiles: 'deny',
+    setHeaders: res => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Security-Policy', 'sandbox');
+    }
+}));
 
 // API Routes
 
@@ -89,6 +122,9 @@ app.get('/api/presets', (req, res) => {
     }
 });
 
+const isSnowflake = (v: unknown): v is string => typeof v === 'string' && /^\d{17,20}$/.test(v);
+const SUPPORTED_LANGUAGES = ['ja', 'en', 'ko', 'zh-Hans', 'zh-Hant'];
+
 app.post('/api/presets', (req, res) => {
     try {
         // Can be a single preset or array. User requirement says "save (all or one)".
@@ -97,7 +133,18 @@ app.post('/api/presets', (req, res) => {
         // But `data.ts` has `savePreset` (one).
         // Let's assume UI sends one preset to save/update.
         const preset = req.body;
+        const valid =
+            preset !== null &&
+            typeof preset === 'object' &&
+            !Array.isArray(preset) &&
+            (preset.presetId === undefined || (typeof preset.presetId === 'string' && /^[\w-]{1,64}$/.test(preset.presetId))) &&
+            (preset.presetName === undefined || (typeof preset.presetName === 'string' && preset.presetName.length <= 30)) &&
+            (preset.channels === undefined || Array.isArray(preset.channels)) &&
+            (preset.posts === undefined || Array.isArray(preset.posts));
+        if (!valid) return res.status(400).json({ error: 'INVALID_PRESET' });
         if (!preset.presetId) preset.presetId = randomUUID();
+        if (!preset.channels) preset.channels = [];
+        if (!preset.posts) preset.posts = [];
         data.savePreset(preset);
         res.json({ success: true, preset });
     } catch (e: any) {
@@ -107,6 +154,7 @@ app.post('/api/presets', (req, res) => {
 
 app.delete('/api/presets/:id', (req, res) => {
     try {
+        if (!/^[\w-]{1,64}$/.test(req.params.id)) return res.status(400).json({ error: 'INVALID_PRESET_ID' });
         data.deletePreset(req.params.id);
         res.json({ success: true });
     } catch (e: any) {
@@ -120,7 +168,9 @@ app.delete('/api/presets/:id', (req, res) => {
 app.post('/api/presets/seed', (req, res) => {
     try {
         const language = req.body?.language;
-        const result = ensureSeedPresets(typeof language === 'string' ? language : 'ja');
+        const result = ensureSeedPresets(
+            typeof language === 'string' && SUPPORTED_LANGUAGES.includes(language) ? language : 'ja'
+        );
         res.json(result === 'written' ? { ok: true } : { ok: true, skipped: true });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
@@ -128,31 +178,36 @@ app.post('/api/presets/seed', (req, res) => {
 });
 
 // Assets
-app.post('/api/assets/upload', upload.single('file'), (req, res) => {
-    try {
-        if (!req.file) throw new Error('No file uploaded');
-        const assetId = path.basename(req.file.filename, path.extname(req.file.filename)); // technically filename is id+ext.
-        // But wait, my data.ts assumption regarding assetId might need unique ID without extension?
-        // Or just use filename as assetId.
-        // Let's use the full filename as assetId to make life easier or store map.
-        // My multer config saves as `uuid.ext`.
-        // Let's return assetId as the filename.
-
-        res.json({
-            assetId: req.file.filename, // Use filename as ID to keep extension
-            path: `/assets/${req.file.filename}`
-        });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
-    }
+app.post('/api/assets/upload', (req, res) => {
+    upload.single('file')(req, res, (err: any) => {
+        if (err) {
+            if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ error: 'FILE_TOO_LARGE' });
+            }
+            return res.status(400).json({ error: 'UPLOAD_FAILED' });
+        }
+        try {
+            if (!req.file) throw new Error('No file uploaded');
+            res.json({
+                assetId: req.file.filename, // Use filename as ID to keep extension
+                path: `/assets/${req.file.filename}`
+            });
+        } catch (e: any) {
+            res.status(500).json({ error: e.message });
+        }
+    });
 });
 
 // Run Operations
 app.post('/api/run/create', async (req, res) => {
     try {
-        const { presetId, categoryName, memberIds } = req.body;
-        if (!presetId || !categoryName || !memberIds) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        const { presetId, categoryName, memberIds } = req.body ?? {};
+        if (
+            typeof presetId !== 'string' ||
+            typeof categoryName !== 'string' || categoryName.length < 1 || categoryName.length > 100 ||
+            !Array.isArray(memberIds) || memberIds.length > 500 || !memberIds.every(isSnowflake)
+        ) {
+            return res.status(400).json({ error: 'INVALID_FIELDS' });
         }
 
         const result = await operations.runCreate(presetId, categoryName, memberIds);
@@ -165,9 +220,12 @@ app.post('/api/run/create', async (req, res) => {
 
 app.post('/api/run/delete', async (req, res) => {
     try {
-        const { categoryIds } = req.body;
-        if (!categoryIds || !Array.isArray(categoryIds)) {
-            return res.status(400).json({ error: 'Missing categoryIds array' });
+        const { categoryIds } = req.body ?? {};
+        if (
+            !Array.isArray(categoryIds) || categoryIds.length < 1 ||
+            categoryIds.length > 100 || !categoryIds.every(isSnowflake)
+        ) {
+            return res.status(400).json({ error: 'INVALID_CATEGORY_IDS' });
         }
 
         const result = await operations.runDelete(categoryIds);
@@ -197,10 +255,17 @@ app.get('/api/debug/members-raw', async (req, res) => {
 app.get('/api/guild/members', async (req, res) => {
     try {
         const { limit, after } = req.query;
-        const members = await operations.getGuildMembers(
-            limit ? Number(limit) : undefined,
-            after as string
-        );
+        let limitNum: number | undefined;
+        if (limit !== undefined) {
+            limitNum = Number(limit);
+            if (!Number.isFinite(limitNum) || !Number.isInteger(limitNum) || limitNum < 1 || limitNum > 1000) {
+                return res.status(400).json({ error: 'INVALID_LIMIT' });
+            }
+        }
+        if (after !== undefined && !isSnowflake(after)) {
+            return res.status(400).json({ error: 'INVALID_AFTER' });
+        }
+        const members = await operations.getGuildMembers(limitNum, after as string | undefined);
         res.json(members);
     } catch (e: any) {
         console.error("Fetch members failed:", e);
@@ -254,6 +319,7 @@ app.use('/api', (req, res) => {
 
 // Fallback to index.html for SPA
 app.get(/.*/, (req, res) => {
+    res.setHeader('Content-Security-Policy', SPA_CSP);
     res.sendFile(path.join(WEB_DIST, 'index.html'));
 });
 
@@ -262,7 +328,7 @@ app.get(/.*/, (req, res) => {
 export const startServer = (preferredPort: number): Promise<{ port: number; close: () => void }> => {
     return new Promise((resolve, reject) => {
         const attempt = (port: number, tries: number) => {
-            const server = app.listen(port);
+            const server = app.listen(port, '127.0.0.1');
             server.once('error', (e: any) => {
                 if (e.code === 'EADDRINUSE' && preferredPort !== 0 && tries < 10) {
                     attempt(port + 1, tries + 1);

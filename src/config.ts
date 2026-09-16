@@ -8,15 +8,65 @@ export interface AppConfig {
     language?: string;
 }
 
+// Stored-file shape: { tokenEnc?: string; token?: string; guildId: string; language?: string }
+// — never write both `token` and `tokenEnc`.
+interface StoredConfig {
+    tokenEnc?: string;
+    token?: string;
+    guildId?: string;
+    language?: string;
+}
+
+export type SecretCodec = { encrypt: (plain: string) => string; decrypt: (enc: string) => string }; // both sides base64 text
+let codec: SecretCodec | null = null;
+
 let cached: AppConfig | null = null;
+
+export const setSecretCodec = (c: SecretCodec | null) => { codec = c; cached = null; };
+
+const writeStored = (cfg: AppConfig): void => {
+    const stored: StoredConfig = {
+        guildId: cfg.guildId,
+        language: cfg.language
+    };
+    if (codec && cfg.token) {
+        stored.tokenEnc = codec.encrypt(cfg.token);
+    } else {
+        stored.token = cfg.token;
+    }
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(stored, null, 2));
+};
 
 export const loadConfig = (): AppConfig => {
     if (cached) return cached;
     if (fs.existsSync(CONFIG_FILE)) {
         try {
-            const raw = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+            const raw: StoredConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+            let token = '';
+            if (raw.tokenEnc) {
+                if (codec) {
+                    try {
+                        token = codec.decrypt(raw.tokenEnc);
+                    } catch (e) {
+                        console.error('Failed to decrypt config token:', e);
+                    }
+                } else {
+                    console.warn('config.json token is encrypted; run inside the packaged app');
+                }
+            } else if (raw.token) {
+                token = raw.token;
+                // Migrate plaintext → encrypted now that a codec is available
+                if (codec) {
+                    const migrated: AppConfig = { token, guildId: raw.guildId || '', language: raw.language };
+                    try {
+                        writeStored(migrated);
+                    } catch (e) {
+                        console.error('Failed to migrate config token:', e);
+                    }
+                }
+            }
             cached = {
-                token: raw.token || '',
+                token,
                 guildId: raw.guildId || '',
                 language: raw.language
             };
@@ -34,7 +84,7 @@ export const loadConfig = (): AppConfig => {
 };
 
 export const saveConfig = (cfg: AppConfig): void => {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
+    writeStored(cfg);
     cached = { ...cfg };
     // Lazy require to avoid circular dependency at module init
     const { applyConfig } = require('./discord/client2');

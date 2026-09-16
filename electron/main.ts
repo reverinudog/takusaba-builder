@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog, shell } from 'electron';
+import { app, BrowserWindow, Menu, dialog, shell, safeStorage } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
@@ -9,9 +9,9 @@ import { setUpdateState, updateEvents } from '../src/updates';
 app.setName('卓鯖ビルダー');
 // Keep userData on an ASCII path for consistent tooling/AV behaviour
 app.setPath('userData', path.join(app.getPath('appData'), 'TakusabaBuilder'));
-process.env.SRB_APP_ROOT = app.isPackaged
+process.env.SRB_APP_ROOT = process.env.SRB_APP_ROOT || (app.isPackaged
     ? app.getPath('userData') // %APPDATA%/TakusabaBuilder (win) / ~/Library/Application Support/TakusabaBuilder (mac)
-    : path.join(__dirname, '..'); // dev `electron .`: repository root
+    : path.join(__dirname, '..')); // dev `electron .`: repository root
 process.env.SRB_WEB_DIST = path.join(app.getAppPath(), 'web/dist');
 // Lets the bundled server distinguish packaged vs dev before it initializes state
 process.env.SRB_PACKAGED = String(app.isPackaged);
@@ -82,6 +82,13 @@ const dialogStrings = () => {
 };
 
 let closeServer: (() => void) | null = null;
+
+const openExternalSafe = (url: string) => {
+    try {
+        const u = new URL(url);
+        if (u.protocol === 'https:' || u.protocol === 'http:') shell.openExternal(url);
+    } catch { /* ignore */ }
+};
 
 // --- Auto-update -------------------------------------------------------------
 // Windows: electron-updater via GitHub Releases (latest.yml). macOS: unsigned
@@ -165,6 +172,14 @@ const setupUpdates = () => {
 
 
 const createWindow = async () => {
+    const { setSecretCodec } = await import('../src/config');
+    const useEncryption = app.isPackaged || process.env.SRB_ENCRYPT_TOKEN === '1';
+    if (useEncryption && safeStorage.isEncryptionAvailable()) {
+        setSecretCodec({
+            encrypt: s => safeStorage.encryptString(s).toString('base64'),
+            decrypt: b => safeStorage.decryptString(Buffer.from(b, 'base64'))
+        });
+    }
     const { startServer } = await import('../src/server');
     const { port, close } = await startServer(0);
     closeServer = close;
@@ -189,13 +204,13 @@ const createWindow = async () => {
 
     // External links open in the system browser, never in-app
     win.webContents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        openExternalSafe(url);
         return { action: 'deny' };
     });
     win.webContents.on('will-navigate', (e, url) => {
         if (!url.startsWith('http://127.0.0.1:')) {
             e.preventDefault();
-            shell.openExternal(url);
+            openExternalSafe(url);
         }
     });
 

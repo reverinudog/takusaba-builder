@@ -1,6 +1,6 @@
 {
   "name": "takusaba-builder",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "プリセットからまとめて作成する卓鯖ビルダー",
   "main": "build/main.cjs",
   "author": "reverinudog",

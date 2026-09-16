@@ -35,8 +35,12 @@ export const getAssetPath = (assetId: string): string | null => {
     // Simplest way: assetId IS the filename (uuid + extension)
     // Or we scan the directory for files starting with assetId.
 
+    if (typeof assetId !== 'string' || !/^[\w.-]{1,120}$/.test(assetId) || assetId.startsWith('.')) return null;
     if (!fs.existsSync(ASSETS_DIR)) return null;
     const files = fs.readdirSync(ASSETS_DIR);
     const file = files.find(f => f.startsWith(assetId));
-    return file ? path.join(ASSETS_DIR, file) : null;
+    if (!file) return null;
+    const resolved = path.resolve(ASSETS_DIR, file);
+    if (!resolved.startsWith(path.resolve(ASSETS_DIR) + path.sep)) return null;
+    return resolved;
 };
