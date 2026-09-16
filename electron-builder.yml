@@ -1,5 +1,5 @@
-appId: com.github.reverinudog.sessionroombuilder
-productName: Session Room Builder
+appId: com.github.reverinudog.takusababuilder
+productName: 卓鯖ビルダー
 directories:
   output: release
   buildResources: build-resources
@@ -15,13 +15,13 @@ win:
     - target: nsis
       arch: [x64, arm64]
   icon: build-resources/icon.png
-  artifactName: SessionRoomBuilder-Setup-${version}-${arch}.${ext}
+  artifactName: TakusabaBuilder-Setup-${version}-${arch}.${ext}
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false
   createDesktopShortcut: true
-  shortcutName: Session Room Builder
+  shortcutName: 卓鯖ビルダー
   installerLanguages: [ja_JP]
   language: "1041"
 mac:
@@ -34,4 +34,4 @@ mac:
   category: public.app-category.utilities
   identity: null
   hardenedRuntime: false
-  artifactName: SessionRoomBuilder-${version}-mac.${ext}
+  artifactName: TakusabaBuilder-${version}-mac.${ext}

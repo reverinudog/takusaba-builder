@@ -1,8 +1,8 @@
-# Session Room Builder
+# 卓鯖ビルダー（たくさばビルダー）
 
-TRPG のセッション用 Discord チャンネルを、テンプレから一発で作って、終わったらまとめて片付けるデスクトップアプリ（Windows / Mac）
+TRPG の卓（セッション）ごとに必要な Discord チャンネル一式を、テンプレから一発で作って、終わったらまとめて片付けるデスクトップアプリ（Windows / Mac）
 
-[![Release](https://img.shields.io/github/v/release/reverinudog/session-room-builder)](https://github.com/reverinudog/session-room-builder/releases/latest)
+[![Release](https://img.shields.io/github/v/release/reverinudog/takusaba-builder)](https://github.com/reverinudog/takusaba-builder/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## こんな人向け
@@ -22,12 +22,12 @@ TRPG のセッション用 Discord チャンネルを、テンプレから一発
 
 ## ダウンロード
 
-[Releases ページ](https://github.com/reverinudog/session-room-builder/releases/latest) から最新版をダウンロードしてください。
+[Releases ページ](https://github.com/reverinudog/takusaba-builder/releases/latest) から最新版をダウンロードしてください。
 
 | OS | ファイル |
 |---|---|
-| Windows | `SessionRoomBuilder-Setup-x.x.x.exe`（迷ったらこれ） |
-| Mac | `SessionRoomBuilder-x.x.x-mac.dmg` |
+| Windows | `TakusabaBuilder-Setup-x.x.x.exe`（迷ったらこれ） |
+| Mac | `TakusabaBuilder-x.x.x-mac.dmg` |
 
 ## インストール
 
@@ -35,7 +35,7 @@ TRPG のセッション用 Discord チャンネルを、テンプレから一発
 
 1. ダウンロードした `Setup-x.x.x.exe` を実行
 2. 「WindowsによってPCが保護されました」と出たら **「詳細情報」→「実行」**
-3. デスクトップにできた「Session Room Builder」ショートカットから起動
+3. デスクトップにできた「卓鯖ビルダー」ショートカットから起動
 
 ### Mac
 
@@ -82,8 +82,8 @@ TRPG のセッション用 Discord チャンネルを、テンプレから一発
 ## データとプライバシー
 
 - 設定（Bot トークン）とプリセットはこの PC 内にのみ保存されます:
-  - Windows: `%APPDATA%\Session Room Builder\data`
-  - Mac: `~/Library/Application Support/Session Room Builder/data`
+  - Windows: `%APPDATA%\TakusabaBuilder\data`
+  - Mac: `~/Library/Application Support/TakusabaBuilder/data`
 - このアプリが通信するのは **Discord の API だけ**です。データが外部サーバーに送られることはありません
 - データフォルダにはトークンが含まれます。**他人に渡さないでください**
 
@@ -114,7 +114,7 @@ npm run electron:dev   # Electron ウィンドウで起動（開発モード、�
 ### 配布物の作成
 
 ```sh
-npm run dist:win   # Windows インストーラ → release/SessionRoomBuilder-Setup-*-x64.exe / -arm64.exe
+npm run dist:win   # Windows インストーラ → release/TakusabaBuilder-Setup-*-x64.exe / -arm64.exe
 npm run dist:mac   # macOS dmg/zip（Mac 上でのみ動作）
 ```
 

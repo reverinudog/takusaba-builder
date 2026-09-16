@@ -1,7 +1,7 @@
 {
-  "name": "session-room-builder",
-  "version": "1.0.0",
-  "description": "TRPG 卓の Discord チャンネルを一発で作るデスクトップツール",
+  "name": "takusaba-builder",
+  "version": "1.1.0",
+  "description": "TRPG 卓用の Discord チャンネル一式をテンプレから一発で作る卓鯖ビルダー",
   "main": "build/main.cjs",
   "author": "reverinudog",
   "license": "MIT",
@@ -41,7 +41,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/reverinudog/session-room-builder.git"
+    "url": "https://github.com/reverinudog/takusaba-builder"
   },
-  "homepage": "https://github.com/reverinudog/session-room-builder"
+  "homepage": "https://github.com/reverinudog/takusaba-builder"
 }

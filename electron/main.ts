@@ -3,9 +3,11 @@ import path from 'path';
 
 // These must be set BEFORE src/paths.ts is evaluated (it reads env at import
 // time), so the server module is loaded lazily via dynamic import below.
-app.setName('Session Room Builder');
+app.setName('卓鯖ビルダー');
+// Keep userData on an ASCII path for consistent tooling/AV behaviour
+app.setPath('userData', path.join(app.getPath('appData'), 'TakusabaBuilder'));
 process.env.SRB_APP_ROOT = app.isPackaged
-    ? app.getPath('userData') // %APPDATA%/Session Room Builder (win) / ~/Library/Application Support (mac)
+    ? app.getPath('userData') // %APPDATA%/TakusabaBuilder (win) / ~/Library/Application Support/TakusabaBuilder (mac)
     : path.join(__dirname, '..'); // dev `electron .`: repository root
 process.env.SRB_WEB_DIST = path.join(app.getAppPath(), 'web/dist');
 
@@ -42,7 +44,7 @@ const createWindow = async () => {
         minWidth: 1000,
         minHeight: 680,
         backgroundColor: '#060907',
-        title: 'Session Room Builder',
+        title: '卓鯖ビルダー',
         autoHideMenuBar: true,
         show: false,
         webPreferences: {

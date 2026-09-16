@@ -86,8 +86,8 @@ function Shell() {
                 <div className={styles.initialBrand}>
                     <div className={styles.logo}><Hash size={17} /></div>
                     <div>
-                        <div className={styles.brandName}>Session Room Builder</div>
-                        <div className={styles.brandSub}>TRPG session room builder</div>
+                        <div className={styles.brandName}>卓鯖ビルダー</div>
+                        <div className={styles.brandSub}>TRPG 卓の Discord サーバーを一発構築</div>
                     </div>
                 </div>
                 <div className={styles.initialBody}>
@@ -114,8 +114,8 @@ function Shell() {
                 <div className={styles.brand}>
                     <div className={styles.logo}><Hash size={17} /></div>
                     <div>
-                        <div className={styles.brandName}>Session Room Builder</div>
-                        <div className={styles.brandSub}>TRPG session room builder</div>
+                        <div className={styles.brandName}>卓鯖ビルダー</div>
+                        <div className={styles.brandSub}>TRPG 卓の Discord サーバーを一発構築</div>
                     </div>
                 </div>
 
