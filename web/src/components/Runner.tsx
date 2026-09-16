@@ -13,11 +13,14 @@ import Modal from '../ui/Modal';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
 import Callout from '../ui/Callout';
-import { useToast, errMsg } from '../ui/toastContext';
+import { useToast } from '../ui/toastContext';
+import { useI18n, apiErrMsg } from '../i18n';
 import styles from './Runner.module.css';
 
 export default function Runner({ guildId }: { guildId: string }) {
     const toast = useToast();
+    const { t } = useI18n();
+    const errMsg = (e: unknown) => apiErrMsg(t, e);
     const [presets, setPresets] = useState<Preset[]>([]);
     const [selectedPresetId, setSelectedPresetId] = useState<string>('');
     const [categoryName, setCategoryName] = useState('');
@@ -97,12 +100,12 @@ export default function Runner({ guildId }: { guildId: string }) {
     return (
         <div className={styles.page}>
             <div className={styles.inner}>
-                <Card header={<><Play size={16} /> 卓を立てる</>}>
+                <Card header={<><Play size={16} /> {t('run.title')}</>}>
                     <div className={styles.grid2}>
                         <Field
-                            label="使うプリセット"
+                            label={t('run.preset')}
                             required
-                            error={touched.preset && !isPresetValid ? 'プリセットを選択してください' : undefined}
+                            error={touched.preset && !isPresetValid ? t('run.presetErr') : undefined}
                         >
                             <Select
                                 value={selectedPresetId}
@@ -110,7 +113,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                                 onBlur={() => setTouched({ ...touched, preset: true })}
                                 invalid={touched.preset && !isPresetValid}
                             >
-                                <option value="">-- 選択してください --</option>
+                                <option value="">{t('run.presetPick')}</option>
                                 {presets.map(p => (
                                     <option key={p.presetId} value={p.presetId}>{p.presetName}</option>
                                 ))}
@@ -118,15 +121,15 @@ export default function Runner({ guildId }: { guildId: string }) {
                         </Field>
 
                         <Field
-                            label="卓名（カテゴリ名）"
+                            label={t('run.category')}
                             required
-                            error={touched.category && !isCategoryValid ? 'カテゴリ名を入力してください' : undefined}
+                            error={touched.category && !isCategoryValid ? t('run.categoryErr') : undefined}
                         >
                             <Input
                                 value={categoryName}
                                 onChange={e => setCategoryName(e.target.value)}
                                 onBlur={() => setTouched({ ...touched, category: true })}
-                                placeholder="例：2026-10-04 20:00 シナリオ名"
+                                placeholder={t('run.categoryPh')}
                                 invalid={touched.category && !isCategoryValid}
                             />
                         </Field>
@@ -134,7 +137,7 @@ export default function Runner({ guildId }: { guildId: string }) {
 
                     {selectedPreset && (
                         <div className={styles.presetSummary}>
-                            <div className={styles.summaryLabel}>このプリセットで作成されるもの</div>
+                            <div className={styles.summaryLabel}>{t('run.summary')}</div>
                             <div className={styles.chipRow}>
                                 {selectedPreset.channels.map(ch => {
                                     const postCount = selectedPreset.posts.find(p => p.targetChannelKey === ch.key)?.items.length ?? 0;
@@ -143,7 +146,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                                             {ch.type === 'voice' ? <Volume2 size={13} /> : <Hash size={13} />}
                                             {ch.name}
                                             {ch.isHidden && <Lock size={11} />}
-                                            {postCount > 0 && <span className={styles.chipPosts}>・投稿{postCount}件</span>}
+                                            {postCount > 0 && <span className={styles.chipPosts}>{t('run.posts', { n: postCount })}</span>}
                                         </span>
                                     );
                                 })}
@@ -155,13 +158,13 @@ export default function Runner({ guildId }: { guildId: string }) {
                 <Card
                     header={
                         <>
-                            参加者（PL）を選ぶ
-                            <Badge tone="accent">{selectedMembers.size}人選択中</Badge>
+                            {t('run.members')}
+                            <Badge tone="accent">{t('run.membersBadge', { n: selectedMembers.size })}</Badge>
                         </>
                     }
                     actions={
                         <IconButton
-                            title="ログ"
+                            title={t('run.logTitle')}
                             onClick={async () => {
                                 try {
                                     const data = await api.getDebugMembersRaw();
@@ -179,7 +182,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                         <span className={styles.searchIcon}><Search size={16} /></span>
                         <Input
                             className={styles.searchInput}
-                            placeholder="メンバーを検索... (ユーザー名)"
+                            placeholder={t('run.searchPh')}
                             value={filterText}
                             onChange={e => setFilterText(e.target.value)}
                         />
@@ -210,7 +213,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                     {selectedMembers.size === 0 && (
                         <div className={styles.warnRow}>
                             <Callout tone="warning">
-                                参加者を選ばない場合、Bot と管理者だけが見えるカテゴリが作られます（あとから Discord 側で権限を付けることもできます）。
+                                {t('run.noMembersWarn')}
                             </Callout>
                         </div>
                     )}
@@ -219,7 +222,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                         <div className={styles.debugLog}>
                             <div className={styles.debugHead}>
                                 <span>Debug Log</span>
-                                <Button variant="ghost" size="sm" onClick={() => setDebugLog(null)}>閉じる</Button>
+                                <Button variant="ghost" size="sm" onClick={() => setDebugLog(null)}>{t('common.close')}</Button>
                             </div>
                             <pre className={styles.debugPre}>{debugLog}</pre>
                         </div>
@@ -228,7 +231,7 @@ export default function Runner({ guildId }: { guildId: string }) {
 
                 <div className={styles.runRow}>
                     <Button size="lg" icon={<ArrowRight size={18} />} onClick={handleConfirmClick} loading={loading}>
-                        実行内容を確認
+                        {t('run.check')}
                     </Button>
                 </div>
             </div>
@@ -236,33 +239,33 @@ export default function Runner({ guildId }: { guildId: string }) {
             {/* Confirm Modal */}
             {showConfirm && selectedPreset && (
                 <Modal
-                    title="この内容で卓を立てます"
-                    description="Discord サーバーに、参加者だけが見えるカテゴリとチャンネルを作成します。"
+                    title={t('run.confirm.title')}
+                    description={t('run.confirm.desc')}
                     width={560}
                     onClose={() => setShowConfirm(false)}
                     footer={
                         <>
-                            <Button variant="secondary" onClick={() => setShowConfirm(false)}>キャンセル</Button>
-                            <Button onClick={handleRun} loading={loading}>卓を立てる</Button>
+                            <Button variant="secondary" onClick={() => setShowConfirm(false)}>{t('common.cancel')}</Button>
+                            <Button onClick={handleRun} loading={loading}>{t('run.confirm.go')}</Button>
                         </>
                     }
                 >
                     <div className={styles.defList}>
                         <div className={styles.defRow}>
-                            <span className={styles.defLabel}>卓名</span>
+                            <span className={styles.defLabel}>{t('run.confirm.name')}</span>
                             <span className={styles.defValue}>{categoryName}</span>
                         </div>
                         <div className={styles.defRow}>
-                            <span className={styles.defLabel}>プリセット</span>
+                            <span className={styles.defLabel}>{t('run.confirm.preset')}</span>
                             <span className={styles.defValue}>{selectedPreset.presetName}</span>
                         </div>
                         <div className={styles.defRow}>
-                            <span className={styles.defLabel}>作成するチャンネル数</span>
-                            <span className={styles.defValue}>{selectedPreset.channels.length} チャンネル</span>
+                            <span className={styles.defLabel}>{t('run.confirm.channels')}</span>
+                            <span className={styles.defValue}>{t('run.confirm.channelsVal', { n: selectedPreset.channels.length })}</span>
                         </div>
                         <div className={styles.defRow}>
-                            <span className={styles.defLabel}>参加者</span>
-                            <span className={styles.defValue}>{selectedMembers.size} 人</span>
+                            <span className={styles.defLabel}>{t('run.confirm.members')}</span>
+                            <span className={styles.defValue}>{t('run.confirm.membersVal', { n: selectedMembers.size })}</span>
                         </div>
                     </div>
                 </Modal>
@@ -271,8 +274,8 @@ export default function Runner({ guildId }: { guildId: string }) {
             {/* Result Modal */}
             {result && (
                 <Modal
-                    title="卓を立てました"
-                    description="Discordへの操作が完了しました。詳細は以下の通りです。"
+                    title={t('run.result.title')}
+                    description={t('run.result.desc')}
                     width={660}
                 >
                     <div className={styles.resultCatId}>
@@ -282,14 +285,14 @@ export default function Runner({ guildId }: { guildId: string }) {
                             target="_blank"
                             rel="noreferrer"
                         >
-                            <ExternalLink size={14} /> Discord で開く
+                            <ExternalLink size={14} /> {t('run.result.open')}
                         </a>
                         <code className={styles.catId}>{result.category.id}</code>
                     </div>
 
                     {result.errors.length > 0 && (
                         <>
-                            <div className={styles.sectionLabel}>エラー詳細 (コピー用)</div>
+                            <div className={styles.sectionLabel}>{t('run.result.errors')}</div>
                             <Callout tone="danger">
                                 <Textarea
                                     readOnly
@@ -300,13 +303,13 @@ export default function Runner({ guildId }: { guildId: string }) {
                         </>
                     )}
 
-                    <div className={styles.sectionLabel}>チャンネル作成状況</div>
+                    <div className={styles.sectionLabel}>{t('run.result.channels')}</div>
                     <div className={styles.tableWrap}>
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>チャンネル名</th>
-                                    <th>ステータス</th>
+                                    <th>{t('run.th.name')}</th>
+                                    <th>{t('common.status')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -315,8 +318,8 @@ export default function Runner({ guildId }: { guildId: string }) {
                                         <td>{c.name}</td>
                                         <td>
                                             {c.success
-                                                ? <Badge tone="success">成功</Badge>
-                                                : <Badge tone="danger">失敗</Badge>}
+                                                ? <Badge tone="success">{t('common.success')}</Badge>
+                                                : <Badge tone="danger">{t('common.failure')}</Badge>}
                                         </td>
                                     </tr>
                                 ))}
@@ -325,7 +328,7 @@ export default function Runner({ guildId }: { guildId: string }) {
                     </div>
 
                     <div className={styles.resultFooter}>
-                        <Button onClick={() => setResult(null)}>閉じる</Button>
+                        <Button onClick={() => setResult(null)}>{t('common.close')}</Button>
                     </div>
                 </Modal>
             )}

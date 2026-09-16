@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, dialog, shell } from 'electron';
 import path from 'path';
+import fs from 'fs';
 
 // These must be set BEFORE src/paths.ts is evaluated (it reads env at import
 // time), so the server module is loaded lazily via dynamic import below.
@@ -30,6 +31,51 @@ if (process.platform === 'darwin') {
 } else {
     Menu.setApplicationMenu(null);
 }
+
+// Native-dialog strings, keyed by the language stored in data/config.json.
+const DIALOG_STRINGS: Record<string, { unsavedTitle: string; unsavedMsg: string; close: string; cancel: string; startFail: string }> = {
+    ja: {
+        unsavedTitle: '未保存の変更',
+        unsavedMsg: '保存していない変更があります。閉じると失われます。',
+        close: '閉じる', cancel: 'キャンセル',
+        startFail: '起動に失敗しました'
+    },
+    en: {
+        unsavedTitle: 'Unsaved changes',
+        unsavedMsg: 'You have unsaved changes. They will be lost if you close.',
+        close: 'Close', cancel: 'Cancel',
+        startFail: 'Failed to start'
+    },
+    ko: {
+        unsavedTitle: '저장되지 않은 변경 사항',
+        unsavedMsg: '저장하지 않은 변경 사항이 있습니다. 닫으면 사라집니다.',
+        close: '닫기', cancel: '취소',
+        startFail: '시작에 실패했습니다'
+    },
+    'zh-Hans': {
+        unsavedTitle: '未保存的更改',
+        unsavedMsg: '有未保存的更改，关闭后将丢失。',
+        close: '关闭', cancel: '取消',
+        startFail: '启动失败'
+    },
+    'zh-Hant': {
+        unsavedTitle: '未儲存的變更',
+        unsavedMsg: '有未儲存的變更，關閉後將會遺失。',
+        close: '關閉', cancel: '取消',
+        startFail: '啟動失敗'
+    }
+};
+
+const dialogStrings = () => {
+    try {
+        const cfg = JSON.parse(
+            fs.readFileSync(path.join(process.env.SRB_APP_ROOT!, 'data', 'config.json'), 'utf-8')
+        );
+        return DIALOG_STRINGS[cfg.language] ?? DIALOG_STRINGS.en;
+    } catch {
+        return DIALOG_STRINGS.en;
+    }
+};
 
 let closeServer: (() => void) | null = null;
 
@@ -71,13 +117,14 @@ const createWindow = async () => {
     // The web app asks beforeunload when there are unsaved edits — translate
     // that into a native confirm dialog.
     win.webContents.on('will-prevent-unload', e => {
+        const d = dialogStrings();
         const r = dialog.showMessageBoxSync(win, {
             type: 'warning',
-            buttons: ['閉じる', 'キャンセル'],
+            buttons: [d.close, d.cancel],
             defaultId: 1,
             cancelId: 1,
-            title: '未保存の変更',
-            message: '保存していない変更があります。閉じると失われます。'
+            title: d.unsavedTitle,
+            message: d.unsavedMsg
         });
         if (r === 0) e.preventDefault();
     });
@@ -97,7 +144,7 @@ app.whenReady().then(async () => {
     try {
         await createWindow();
     } catch (e) {
-        dialog.showErrorBox('起動に失敗しました', e instanceof Error ? e.message : String(e));
+        dialog.showErrorBox(dialogStrings().startFail, e instanceof Error ? e.message : String(e));
         app.quit();
     }
 });

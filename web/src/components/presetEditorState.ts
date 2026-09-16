@@ -22,13 +22,13 @@ export const updateChannel = (preset: Preset, idx: number, patch: Partial<Preset
     channels: preset.channels.map((ch, i) => (i === idx ? { ...ch, ...patch } : ch))
 });
 
-export const addChannel = (preset: Preset, type: 'text' | 'voice'): Preset => ({
+export const addChannel = (preset: Preset, type: 'text' | 'voice', name: string): Preset => ({
     ...preset,
     channels: [
         ...preset.channels,
         {
             key: crypto.randomUUID(),
-            name: type === 'voice' ? '新規ボイスチャンネル' : '新規テキストチャンネル',
+            name,
             type
         }
     ]
@@ -70,8 +70,8 @@ export const updatePostItem = (preset: Preset, channelKey: string, idx: number, 
 export const removePostItem = (preset: Preset, channelKey: string, idx: number): Preset =>
     mapPostItems(preset, channelKey, items => items.filter((_, i) => i !== idx));
 
-export const duplicatePreset = (preset: Preset): Preset => ({
+export const duplicatePreset = (preset: Preset, copySuffix: string): Preset => ({
     ...JSON.parse(JSON.stringify(preset)),
     presetId: crypto.randomUUID(),
-    presetName: `${preset.presetName} のコピー`
+    presetName: `${preset.presetName}${copySuffix}`
 });

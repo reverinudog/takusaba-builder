@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Modal from './Modal';
 import Button from './Button';
+import { useI18n } from '../i18n';
 import styles from './ConfirmDialog.module.css';
 
 type Props = {
@@ -17,26 +18,27 @@ type Props = {
 export default function ConfirmDialog({
     title,
     message,
-    confirmLabel = '確認',
+    confirmLabel,
     tone = 'default',
     loading,
     hideCancel,
     onConfirm,
     onCancel
 }: Props) {
+    const { t } = useI18n();
     return (
         <Modal
             title={title}
             onClose={onCancel}
             footer={
                 <>
-                    {!hideCancel && <Button variant="secondary" onClick={onCancel}>キャンセル</Button>}
+                    {!hideCancel && <Button variant="secondary" onClick={onCancel}>{t('common.cancel')}</Button>}
                     <Button
                         variant={tone === 'danger' ? 'danger' : 'primary'}
                         onClick={onConfirm}
                         loading={loading}
                     >
-                        {confirmLabel}
+                        {confirmLabel ?? t('common.confirm')}
                     </Button>
                 </>
             }

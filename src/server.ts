@@ -104,6 +104,19 @@ app.delete('/api/presets/:id', (req, res) => {
     }
 });
 
+// Seeds the sample preset for the chosen language — only when there are no
+// presets yet (first run). Existing users get { ok, skipped } and nothing
+// is written.
+app.post('/api/presets/seed', (req, res) => {
+    try {
+        const language = req.body?.language;
+        const result = ensureSeedPresets(typeof language === 'string' ? language : 'ja');
+        res.json(result === 'written' ? { ok: true } : { ok: true, skipped: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Assets
 app.post('/api/assets/upload', upload.single('file'), (req, res) => {
     try {
@@ -220,7 +233,6 @@ app.get(/.*/, (req, res) => {
 // Starts the Express app. preferredPort 0 lets the OS pick a free port;
 // otherwise EADDRINUSE retries port+1 up to 10 times.
 export const startServer = (preferredPort: number): Promise<{ port: number; close: () => void }> => {
-    ensureSeedPresets();
     return new Promise((resolve, reject) => {
         const attempt = (port: number, tries: number) => {
             const server = app.listen(port);

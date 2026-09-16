@@ -24,7 +24,7 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
         }
         const code = body?.error ?? body?.code;
         if (res.status === 409 && code === 'NOT_CONFIGURED') {
-            throw new ApiError('セットアップが完了していません。左下の「セットアップ」から設定してください。', res.status, 'NOT_CONFIGURED');
+            throw new ApiError('NOT_CONFIGURED', res.status, 'NOT_CONFIGURED');
         }
         throw new ApiError(body?.error ?? body?.message ?? `HTTP ${res.status}`, res.status, code);
     }
@@ -93,7 +93,8 @@ export type SetupStatus = {
     guildName: string | null,
     packaged: boolean,
     port: number,
-    dataDir: string
+    dataDir: string,
+    language: string | null
 };
 export const getSetupStatus = async (): Promise<SetupStatus> => {
     return request('/setup/status');
@@ -129,10 +130,25 @@ export const saveSetup = async (token: string, guildId: string): Promise<{ ok: t
     });
 };
 
-export type SetupCheckItem = { id: string, label: string, ok: boolean, detail?: string };
+export type SetupCheckItem = {
+    id: string,
+    label: string,
+    ok: boolean,
+    detail?: string,
+    detailCode?: 'admin' | 'missing_perms' | 'skipped' | 'intent_off' | 'guild_name' | 'error',
+    detailParams?: Record<string, string>
+};
 export type SetupCheckResult = { ok: boolean, checks: SetupCheckItem[] };
 export const runSetupCheck = async (): Promise<SetupCheckResult> => {
     return request('/setup/check');
+};
+
+export const seedPresets = async (language: string): Promise<{ ok: boolean, skipped?: boolean }> => {
+    return request('/presets/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language })
+    });
 };
 
 export const openDataDir = async (): Promise<{ ok: boolean }> => {

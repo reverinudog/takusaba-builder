@@ -1,9 +1,11 @@
 # 卓鯖ビルダー（たくさばビルダー）
 
-TRPG の卓（セッション）ごとに必要な Discord チャンネル一式を、プリセットから一発で作って、終わったらまとめて片付けるデスクトップアプリ（Windows / Mac）
+TRPG の卓（セッション）ごとに必要な Discord チャンネル一式を、プリセットからまとめて作成し、終わったらまとめて片付けるデスクトップアプリ（Windows / Mac）
 
 [![Release](https://img.shields.io/github/v/release/reverinudog/takusaba-builder)](https://github.com/reverinudog/takusaba-builder/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+> English: This app has an English UI (also 한국어 / 简体中文 / 繁體中文). Download from [Releases](https://github.com/reverinudog/takusaba-builder/releases/latest), run the installer, and the in-app wizard will guide you through creating a Discord bot (about 5 minutes).
 
 ## こんな人向け
 
@@ -19,6 +21,8 @@ TRPG の卓（セッション）ごとに必要な Discord チャンネル一式
 
 ![プリセット編集画面](docs/screenshot-presets.png)
 ![卓を立てる画面](docs/screenshot-runner.png)
+
+**対応言語**: 日本語 / English / 한국어 / 简体中文 / 繁體中文（初回起動時またはサイドバーの「言語」から切り替え）
 
 ## ダウンロード
 

@@ -5,6 +5,7 @@ import { CONFIG_FILE } from './paths';
 export interface AppConfig {
     token: string;
     guildId: string;
+    language?: string;
 }
 
 let cached: AppConfig | null = null;
@@ -16,7 +17,8 @@ export const loadConfig = (): AppConfig => {
             const raw = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
             cached = {
                 token: raw.token || '',
-                guildId: raw.guildId || ''
+                guildId: raw.guildId || '',
+                language: raw.language
             };
             return cached;
         } catch (e) {
@@ -33,10 +35,15 @@ export const loadConfig = (): AppConfig => {
 
 export const saveConfig = (cfg: AppConfig): void => {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
-    cached = { token: cfg.token, guildId: cfg.guildId };
+    cached = { ...cfg };
     // Lazy require to avoid circular dependency at module init
     const { applyConfig } = require('./discord/client2');
     applyConfig(cached);
+};
+
+// Partial update preserving fields not present in `partial`
+export const updateConfig = (partial: Partial<AppConfig>): void => {
+    saveConfig({ ...loadConfig(), ...partial });
 };
 
 export const isConfigured = (): boolean => {

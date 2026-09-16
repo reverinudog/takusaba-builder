@@ -21,8 +21,8 @@
 }
 
 .logo {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: var(--r-sm);
     background: var(--accent);
     color: var(--on-accent);
@@ -33,16 +33,14 @@
 }
 
 .brandName {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--fg-0);
     line-height: 1.25;
 }
 
-.brandSub {
-    font-size: var(--fs-xs);
-    color: var(--fg-2);
-    letter-spacing: 0.02em;
+.brandNameXl {
+    font-size: var(--fs-xl);
 }
 
 .nav {
@@ -178,4 +176,96 @@
 .initialBody {
     flex: 1;
     overflow: hidden;
+}
+
+.langScreen {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.langScreenInner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: min(560px, 90vw);
+}
+
+.langTitle {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--fg-0);
+    margin: 0;
+    text-align: center;
+}
+
+.langGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.langCard {
+    padding: 16px 12px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line-1);
+    background: var(--bg-1);
+    color: var(--fg-1);
+    font-size: var(--fs-sm);
+    transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast);
+}
+
+.langCard:hover {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+}
+
+.langCardOn {
+    border-color: var(--accent);
+    background: var(--bg-active);
+    color: var(--fg-0);
+}
+
+.langConfirm {
+    padding: 10px 36px;
+    border-radius: var(--r-md);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    transition: filter var(--t-fast);
+}
+
+.langConfirm:hover {
+    filter: brightness(1.1);
+}
+
+.langList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.langRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+    color: var(--fg-1);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+
+.langRow:hover {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+}
+
+.langRow input {
+    accent-color: var(--accent);
 }

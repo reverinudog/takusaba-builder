@@ -2,6 +2,7 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { ToastContext, type ToastTone } from './toastContext';
+import { useI18n } from '../i18n';
 import styles from './Toast.module.css';
 
 type Toast = { id: number; message: string; tone: ToastTone };
@@ -15,6 +16,7 @@ const ICONS: Record<ToastTone, ReactNode> = {
 let nextId = 1;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+    const { t } = useI18n();
     const [toasts, setToasts] = useState<Toast[]>([]);
     const [paused, setPaused] = useState(false);
 
@@ -39,11 +41,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     onMouseEnter={() => setPaused(true)}
                     onMouseLeave={() => setPaused(false)}
                 >
-                    {toasts.map(t => (
-                        <div key={t.id} className={`${styles.toast} ${styles[t.tone]}`}>
-                            <span className={styles.icon}>{ICONS[t.tone]}</span>
-                            <span className={styles.msg}>{t.message}</span>
-                            <button className={styles.close} onClick={() => dismiss(t.id)} aria-label="閉じる">
+                    {toasts.map(toast => (
+                        <div key={toast.id} className={`${styles.toast} ${styles[toast.tone]}`}>
+                            <span className={styles.icon}>{ICONS[toast.tone]}</span>
+                            <span className={styles.msg}>{toast.message}</span>
+                            <button className={styles.close} onClick={() => dismiss(toast.id)} aria-label={t('common.close')}>
                                 <X size={13} />
                             </button>
                         </div>

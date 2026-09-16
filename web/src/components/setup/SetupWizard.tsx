@@ -14,11 +14,10 @@ import Avatar from '../../ui/Avatar';
 import Callout from '../../ui/Callout';
 import EmptyState from '../../ui/EmptyState';
 import CheckList from './CheckList';
-import { errMsg } from '../../ui/toastContext';
+import { useI18n, apiErrMsg } from '../../i18n';
 import styles from './SetupWizard.module.css';
 
 const PORTAL_URL = 'https://discord.com/developers/applications';
-const STEPS = ['はじめに', 'Bot を作る', 'トークンを貼り付け', 'サーバーに招待', '接続チェック'];
 
 type Props = {
     mode: 'initial' | 'reconfigure';
@@ -27,6 +26,9 @@ type Props = {
 };
 
 export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
+    const { t } = useI18n();
+    const errMsg = (e: unknown) => apiErrMsg(t, e);
+    const STEPS = [t('wiz.step0'), t('wiz.step1'), t('wiz.step2'), t('wiz.step3'), t('wiz.step4')];
     const [step, setStep] = useState(0);
     const [token, setToken] = useState('');
     const [showToken, setShowToken] = useState(false);
@@ -48,14 +50,14 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
         (step === 3 && !!selectedGuildId);
 
     const handleVerify = async () => {
-        const t = token.trim();
-        if (!t || verifying) return;
+        const tok = token.trim();
+        if (!tok || verifying) return;
         setVerifying(true);
         setVerifyError(null);
         try {
-            const res = await api.verifyToken(t);
+            const res = await api.verifyToken(tok);
             if (res.ok) setVerify(res);
-            else setVerifyError(res.message);
+            else setVerifyError(apiErrMsg(t, { code: res.code, message: res.message }));
         } catch (e) {
             setVerifyError(errMsg(e));
         } finally {
@@ -64,12 +66,12 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
     };
 
     const loadGuilds = async () => {
-        const t = token.trim();
-        if (!t) return;
+        const tok = token.trim();
+        if (!tok) return;
         setGuildsLoading(true);
         setGuildsError(null);
         try {
-            const res = await api.listGuilds(t);
+            const res = await api.listGuilds(tok);
             if (res.ok) setGuilds(res.guilds);
             else setGuildsError(res.message);
         } catch (e) {
@@ -132,91 +134,87 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
             <div className={styles.body}>
                 {mode === 'reconfigure' && (
                     <div className={styles.reconfigRow}>
-                        <Callout tone="info">現在の接続設定を上書きします。</Callout>
-                        {onCancel && <Button variant="ghost" onClick={onCancel}>戻る</Button>}
+                        <Callout tone="info">{t('wiz.reconfig')}</Callout>
+                        {onCancel && <Button variant="ghost" onClick={onCancel}>{t('common.back')}</Button>}
                     </div>
                 )}
                 <div key={step} className="anim-rise">
                     <Card className={styles.stepCard}>
                         {step === 0 && (
                             <>
-                                <h2 className={styles.stepTitle}>TRPG 卓の準備をはじめましょう</h2>
+                                <h2 className={styles.stepTitle}>{t('wiz.s0.title')}</h2>
                                 <p className={styles.lead}>
-                                    このツールは、TRPG のセッションごとに必要な Discord のチャンネル一式（概要・日程調整・雑談・キャラシ提出など）をワンクリックで作成し、終わったらまとめて片付けるためのものです。
-                                    動かすには「Bot（ボット）」という、あなた専用の自動操作アカウントを Discord 上で1つ作る必要があります。
+                                    {t('wiz.s0.lead')}
                                 </p>
                                 <ul className={styles.prepList}>
-                                    <li><Check size={16} /> Discord アカウント（ログイン済みのブラウザ）</li>
-                                    <li><Check size={16} /> 卓を立てる Discord サーバーの管理者権限（自分が作ったサーバーならOK）</li>
-                                    <li><Check size={16} /> 所要時間 約5分</li>
+                                    <li><Check size={16} /> {t('wiz.s0.prep1')}</li>
+                                    <li><Check size={16} /> {t('wiz.s0.prep2')}</li>
+                                    <li><Check size={16} /> {t('wiz.s0.prep3')}</li>
                                 </ul>
                                 <Callout tone="info">
-                                    作業は Discord の公式サイト（Developer Portal）とこの画面を行ったり来たりします。この画面は閉じずに進めてください。
+                                    {t('wiz.s0.note')}
                                 </Callout>
                             </>
                         )}
 
                         {step === 1 && (
                             <>
-                                <h2 className={styles.stepTitle}>Bot を作る</h2>
+                                <h2 className={styles.stepTitle}>{t('wiz.s1.title')}</h2>
                                 <div>
                                     <Button
                                         icon={<ExternalLink size={16} />}
                                         onClick={() => window.open(PORTAL_URL, '_blank', 'noreferrer')}
                                     >
-                                        Developer Portal を開く
+                                        {t('wiz.s1.open')}
                                     </Button>
                                     <p className={`${styles.stepNote} ${styles.portalNote}`}>
-                                        Discord のログインを求められたら、普段のアカウントでログインしてください。
+                                        {t('wiz.s1.login')}
                                     </p>
+                                    {t('wizard.step1.portalLangNote') !== '' && (
+                                        <p className={styles.stepNote}>{t('wizard.step1.portalLangNote')}</p>
+                                    )}
                                 </div>
                                 <ol className={styles.steps}>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>
-                                                右上の <strong>「New Application」</strong> を押し、名前を入力（例: サーバーセットアップ君）→ 利用規約にチェック → <strong>「Create」</strong>
-                                            </span>
-                                            <span className={styles.stepNote}>この名前が Bot の表示名になります。後から変更できます。</span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s1.i1') }} />
+                                            <span className={styles.stepNote}>{t('wiz.s1.i1n')}</span>
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>左メニューの <strong>「Bot」</strong> を開く</span>
-                                            <span className={styles.stepNote}>Bot は自動で作成済みです。「Add Bot」ボタンは現在ありません。</span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s1.i2') }} />
+                                            <span className={styles.stepNote}>{t('wiz.s1.i2n')}</span>
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>
-                                                下にスクロールし <strong>「Privileged Gateway Intents」</strong> の <strong>「SERVER MEMBERS INTENT」</strong> を ON にし、画面下の <strong>「Save Changes」</strong>
-                                            </span>
-                                            <span className={styles.stepNote}>メンバー一覧を取得するために必要です。これを忘れると次の画面で止まります。</span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s1.i3') }} />
+                                            <span className={styles.stepNote}>{t('wiz.s1.i3n')}</span>
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>
-                                                同じページ上部の <strong>「Reset Token」</strong> → <strong>「Yes, do it!」</strong>（2段階認証を設定している場合は認証アプリのコードを入力）→ 表示された文字列の <strong>「Copy」</strong> を押す
-                                            </span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s1.i4') }} />
                                         </div>
                                     </li>
                                 </ol>
                                 <Callout tone="warning">
-                                    トークンは<strong>パスワードと同じ</strong>です。誰にも見せず、画面にも一度しか表示されません。コピーし忘れたら、もう一度「Reset Token」を押せば新しいものが作れます。
+                                    {t('wiz.s1.warn')}
                                 </Callout>
                             </>
                         )}
 
                         {step === 2 && (
                             <>
-                                <h2 className={styles.stepTitle}>トークンを貼り付け</h2>
-                                <Field label="Bot トークン">
+                                <h2 className={styles.stepTitle}>{t('wiz.s2.title')}</h2>
+                                <Field label={t('wiz.s2.label')}>
                                     <div className={styles.tokenRow}>
                                         <div className={styles.tokenInput}>
                                             <Input
                                                 type={showToken ? 'text' : 'password'}
                                                 value={token}
-                                                placeholder="コピーしたトークンを貼り付け"
+                                                placeholder={t('wiz.s2.ph')}
                                                 onChange={e => {
                                                     setToken(e.target.value);
                                                     setVerify(null);
@@ -229,7 +227,7 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                             <span className={styles.eyeBtn}>
                                                 <IconButton
                                                     size="sm"
-                                                    title={showToken ? '隠す' : '表示'}
+                                                    title={showToken ? t('wiz.s2.hide') : t('wiz.s2.show')}
                                                     onClick={() => setShowToken(!showToken)}
                                                 >
                                                     {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -243,7 +241,7 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                             disabled={!token.trim()}
                                             onClick={handleVerify}
                                         >
-                                            確認
+                                            {t('wiz.s2.verify')}
                                         </Button>
                                     </div>
                                 </Field>
@@ -251,7 +249,7 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                 {verifyError && (
                                     <>
                                         <Callout tone="danger">
-                                            トークンが正しくありません。コピー漏れや前後の空白がないか確認し、手順1-4 の Reset Token からやり直してください。
+                                            {t('wiz.s2.err')}
                                         </Callout>
                                         <div className={styles.errorMsg}>{verifyError}</div>
                                     </>
@@ -267,17 +265,17 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                         <div className={styles.botInfo}>
                                             <div className={styles.botName}>{verify.bot.username}</div>
                                             <div className={styles.botMeta}>
-                                                Server Members Intent: {verify.intents.guildMembers ? '有効' : '無効'}
+                                                Server Members Intent: {verify.intents.guildMembers ? t('wiz.s2.intentOn') : t('wiz.s2.intentOff')}
                                             </div>
                                         </div>
-                                        <Badge tone="success">認証OK</Badge>
+                                        <Badge tone="success">{t('wiz.s2.ok')}</Badge>
                                     </div>
                                 )}
 
                                 {verify && !verify.intents.guildMembers && (
                                     <>
                                         <Callout tone="danger">
-                                            SERVER MEMBERS INTENT が OFF です。Developer Portal の Bot ページで ON にして Save Changes を押し、もう一度「確認」を押してください。
+                                            {t('wiz.s2.intentErr')}
                                         </Callout>
                                         <Button
                                             variant="secondary"
@@ -285,7 +283,7 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                             icon={<ExternalLink size={13} />}
                                             onClick={() => window.open(PORTAL_URL, '_blank', 'noreferrer')}
                                         >
-                                            Developer Portal を開く
+                                            {t('wiz.s1.open')}
                                         </Button>
                                     </>
                                 )}
@@ -294,45 +292,43 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
 
                         {step === 3 && verify && (
                             <>
-                                <h2 className={styles.stepTitle}>サーバーに招待</h2>
-                                <p className={styles.lead}>作った Bot を、チャンネルを作りたいサーバーに参加させます。</p>
+                                <h2 className={styles.stepTitle}>{t('wiz.s3.title')}</h2>
+                                <p className={styles.lead}>{t('wiz.s3.lead')}</p>
                                 <div>
                                     <Button
                                         icon={<ExternalLink size={16} />}
                                         onClick={() => window.open(verify.inviteUrl, '_blank', 'noreferrer')}
                                     >
-                                        招待リンクを開く
+                                        {t('wiz.s3.open')}
                                     </Button>
                                 </div>
                                 <ol className={styles.steps}>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>
-                                                開いたページで <strong>「サーバーを追加」</strong> のプルダウンから対象サーバーを選ぶ → <strong>「はい」</strong>
-                                            </span>
-                                            <span className={styles.stepNote}>自分が管理者のサーバーだけ表示されます。</span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s3.i1') }} />
+                                            <span className={styles.stepNote}>{t('wiz.s3.i1n')}</span>
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>権限の一覧が表示されたら、そのまま <strong>「認証」</strong></span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s3.i2') }} />
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>「ロボットではありません」の確認が出たらチェック</span>
+                                            <span className={styles.stepMain}>{t('wiz.s3.i3')}</span>
                                         </div>
                                     </li>
                                     <li>
                                         <div className={styles.stepBody}>
-                                            <span className={styles.stepMain}>この画面に戻り <strong>「サーバー一覧を更新」</strong></span>
+                                            <span className={styles.stepMain} dangerouslySetInnerHTML={{ __html: t('wiz.s3.i4') }} />
                                         </div>
                                     </li>
                                 </ol>
 
                                 <div className={styles.guildToolbar}>
                                     <Button variant="secondary" size="sm" icon={<RefreshCw size={13} />} loading={guildsLoading} onClick={loadGuilds}>
-                                        サーバー一覧を更新
+                                        {t('wiz.s3.refresh')}
                                     </Button>
                                 </div>
 
@@ -341,8 +337,8 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                 {guilds !== null && guilds.length === 0 && !guildsLoading && (
                                     <EmptyState
                                         icon={<ServerOff size={28} />}
-                                        title="Bot が参加しているサーバーがまだありません"
-                                        description="招待リンクから招待したあと、更新を押してください"
+                                        title={t('wiz.s3.empty.t')}
+                                        description={t('wiz.s3.empty.d')}
                                     />
                                 )}
 
@@ -371,19 +367,19 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                 )}
 
                                 <Callout tone="info">
-                                    招待先のサーバーで、あなた自身に「サーバー管理」または「管理者」権限が必要です。他人のサーバーの場合は管理者に招待をお願いしてください。
+                                    {t('wiz.s3.note')}
                                 </Callout>
                             </>
                         )}
 
                         {step === 4 && (
                             <>
-                                <h2 className={styles.stepTitle}>接続チェック</h2>
+                                <h2 className={styles.stepTitle}>{t('wiz.s4.title')}</h2>
                                 {saveError ? (
                                     <>
-                                        <Callout tone="danger">設定の保存に失敗しました: {saveError}</Callout>
+                                        <Callout tone="danger">{t('wiz.s4.saveErr', { msg: saveError })}</Callout>
                                         <div>
-                                            <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={runCheck}>再試行</Button>
+                                            <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={runCheck}>{t('common.retry')}</Button>
                                         </div>
                                     </>
                                 ) : (
@@ -391,13 +387,13 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                                         <CheckList checks={checks} loading={checksLoading} />
                                         <div className={styles.recheckRow}>
                                             <Button variant="secondary" size="sm" icon={<RefreshCw size={13} />} loading={checksLoading} onClick={runCheck}>
-                                                再チェック
+                                                {t('wiz.s4.recheck')}
                                             </Button>
                                         </div>
                                         {allOk && (
                                             <div className={styles.startRow}>
                                                 <Button size="lg" icon={<ArrowRight size={18} />} onClick={onComplete} className="anim-scale">
-                                                    はじめる
+                                                    {t('wiz.s4.start')}
                                                 </Button>
                                             </div>
                                         )}
@@ -409,15 +405,15 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                         {/* Footer nav */}
                         {step < 4 && (
                             <div className={styles.footerRow}>
-                                <Button variant="ghost" onClick={back} disabled={step === 0}>戻る</Button>
+                                <Button variant="ghost" onClick={back} disabled={step === 0}>{t('common.back')}</Button>
                                 <Button onClick={next} disabled={!canNext}>
-                                    {step === 1 ? 'トークンをコピーしたら次へ' : step === 3 ? 'このサーバーで設定を保存' : '次へ'}
+                                    {step === 1 ? t('wiz.next1') : step === 3 ? t('wiz.next3') : t('common.next')}
                                 </Button>
                             </div>
                         )}
                         {step === 4 && (
                             <div className={styles.footerRow}>
-                                <Button variant="ghost" onClick={back}>戻る</Button>
+                                <Button variant="ghost" onClick={back}>{t('common.back')}</Button>
                                 <span />
                             </div>
                         )}

@@ -1,7 +1,7 @@
 import express from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { loadConfig, saveConfig, isConfigured, AppConfig } from './config';
+import { loadConfig, saveConfig, updateConfig, isConfigured, AppConfig } from './config';
 import { fetchMembers } from './discord/client2';
 import {
     BOT_INVITE_PERMISSIONS,
@@ -66,8 +66,18 @@ router.get('/status', async (req, res) => {
         guildName,
         packaged: IS_ELECTRON,
         port: Number(process.env.PORT) || 3000,
-        dataDir: DATA_DIR
+        dataDir: DATA_DIR,
+        language: cfg.language ?? null
     });
+});
+
+router.post('/language', (req, res) => {
+    const language = req.body?.language;
+    if (typeof language !== 'string' || !language) {
+        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', message: 'language is required' });
+    }
+    updateConfig({ language });
+    res.json({ ok: true });
 });
 
 router.post('/verify-token', (req, res) => handleDiscord(res, async () => {
@@ -124,6 +134,8 @@ interface Check {
     label: string;
     ok: boolean;
     detail?: string;
+    detailCode?: 'admin' | 'missing_perms' | 'skipped' | 'intent_off' | 'guild_name' | 'error';
+    detailParams?: Record<string, string>;
 }
 
 const SKIPPED = '先行チェックが失敗したためスキップ';
@@ -138,7 +150,7 @@ const runChecks = async (cfg: AppConfig): Promise<Check[]> => {
         botUser = await rest.get(Routes.user());
         checks.push({ id: 'token', label: 'Botトークン', ok: true });
     } catch (e: any) {
-        checks.push({ id: 'token', label: 'Botトークン', ok: false, detail: e.message });
+        checks.push({ id: 'token', label: 'Botトークン', ok: false, detail: e.message, detailCode: 'error', detailParams: { message: e.message } });
     }
 
     // 2. intent_members
@@ -150,25 +162,26 @@ const runChecks = async (cfg: AppConfig): Promise<Check[]> => {
                 id: 'intent_members',
                 label: 'Server Members Intent',
                 ok: enabled,
-                detail: enabled ? undefined : 'Developer Portal で Server Members Intent を有効にしてください'
+                detail: enabled ? undefined : 'Developer Portal で Server Members Intent を有効にしてください',
+                detailCode: enabled ? undefined : 'intent_off'
             });
         } catch (e: any) {
-            checks.push({ id: 'intent_members', label: 'Server Members Intent', ok: false, detail: e.message });
+            checks.push({ id: 'intent_members', label: 'Server Members Intent', ok: false, detail: e.message, detailCode: 'error', detailParams: { message: e.message } });
         }
     } else {
-        checks.push({ id: 'intent_members', label: 'Server Members Intent', ok: false, detail: SKIPPED });
+        checks.push({ id: 'intent_members', label: 'Server Members Intent', ok: false, detail: SKIPPED, detailCode: 'skipped' });
     }
 
     // 3. guild
     if (checks[0].ok) {
         try {
             const guild: any = await rest.get(Routes.guild(cfg.guildId));
-            checks.push({ id: 'guild', label: 'サーバー参加', ok: true, detail: guild.name });
+            checks.push({ id: 'guild', label: 'サーバー参加', ok: true, detail: guild.name, detailCode: 'guild_name', detailParams: { name: guild.name } });
         } catch (e: any) {
-            checks.push({ id: 'guild', label: 'サーバー参加', ok: false, detail: e.message });
+            checks.push({ id: 'guild', label: 'サーバー参加', ok: false, detail: e.message, detailCode: 'error', detailParams: { message: e.message } });
         }
     } else {
-        checks.push({ id: 'guild', label: 'サーバー参加', ok: false, detail: SKIPPED });
+        checks.push({ id: 'guild', label: 'サーバー参加', ok: false, detail: SKIPPED, detailCode: 'skipped' });
     }
 
     // 4. permissions
@@ -182,21 +195,26 @@ const runChecks = async (cfg: AppConfig): Promise<Check[]> => {
                 perms |= roleMap.get(roleId) ?? 0n;
             }
             if ((perms & ADMINISTRATOR) !== 0n) {
-                checks.push({ id: 'permissions', label: 'Bot権限', ok: true, detail: '管理者権限あり' });
+                checks.push({ id: 'permissions', label: 'Bot権限', ok: true, detail: '管理者権限あり', detailCode: 'admin' });
             } else {
-                const missing = PERMISSION_NAMES.filter(p => (perms & p.bit) === 0n).map(p => p.name);
+                const missing = PERMISSION_NAMES.filter(p => (perms & p.bit) === 0n);
                 checks.push({
                     id: 'permissions',
                     label: 'Bot権限',
                     ok: missing.length === 0,
-                    detail: missing.length ? `不足: ${missing.join(', ')}` : undefined
+                    detail: missing.length ? `不足: ${missing.map(p => p.name).join(', ')}` : undefined,
+                    detailCode: missing.length ? 'missing_perms' : undefined,
+                    detailParams: missing.length ? {
+                        perms: missing.map(p => p.name).join(', '),
+                        permKeys: missing.map(p => p.key).join(',')
+                    } : undefined
                 });
             }
         } catch (e: any) {
-            checks.push({ id: 'permissions', label: 'Bot権限', ok: false, detail: e.message });
+            checks.push({ id: 'permissions', label: 'Bot権限', ok: false, detail: e.message, detailCode: 'error', detailParams: { message: e.message } });
         }
     } else {
-        checks.push({ id: 'permissions', label: 'Bot権限', ok: false, detail: SKIPPED });
+        checks.push({ id: 'permissions', label: 'Bot権限', ok: false, detail: SKIPPED, detailCode: 'skipped' });
     }
 
     // 5. members_fetch
@@ -205,10 +223,10 @@ const runChecks = async (cfg: AppConfig): Promise<Check[]> => {
             await fetchMembers(1);
             checks.push({ id: 'members_fetch', label: 'メンバー取得', ok: true });
         } catch (e: any) {
-            checks.push({ id: 'members_fetch', label: 'メンバー取得', ok: false, detail: e.message });
+            checks.push({ id: 'members_fetch', label: 'メンバー取得', ok: false, detail: e.message, detailCode: 'error', detailParams: { message: e.message } });
         }
     } else {
-        checks.push({ id: 'members_fetch', label: 'メンバー取得', ok: false, detail: SKIPPED });
+        checks.push({ id: 'members_fetch', label: 'メンバー取得', ok: false, detail: SKIPPED, detailCode: 'skipped' });
     }
 
     return checks;

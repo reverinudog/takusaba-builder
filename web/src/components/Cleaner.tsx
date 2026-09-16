@@ -7,11 +7,14 @@ import Modal from '../ui/Modal';
 import Badge from '../ui/Badge';
 import Callout from '../ui/Callout';
 import EmptyState from '../ui/EmptyState';
-import { useToast, errMsg } from '../ui/toastContext';
+import { useToast } from '../ui/toastContext';
+import { useI18n, apiErrMsg } from '../i18n';
 import styles from './Cleaner.module.css';
 
 export default function Cleaner() {
     const toast = useToast();
+    const { t } = useI18n();
+    const errMsg = (e: unknown) => apiErrMsg(t, e);
     const [categories, setCategories] = useState<api.Category[]>([]);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [managedOnly, setManagedOnly] = useState(true);
@@ -76,7 +79,7 @@ export default function Cleaner() {
         <div className={styles.page}>
             <div className={styles.inner}>
                 <div className={styles.headRow}>
-                    <h2>卓の片付け（カテゴリ削除）</h2>
+                    <h2>{t('clean.title')}</h2>
                     <div className={styles.headActions}>
                         <button
                             role="switch"
@@ -85,10 +88,10 @@ export default function Cleaner() {
                             onClick={() => setManagedOnly(v => !v)}
                         >
                             <span className={styles.switchDot} />
-                            このツールで作った卓だけ表示
+                            {t('clean.managedOnly')}
                         </button>
                         <Button variant="secondary" icon={<RefreshCw size={16} />} loading={loading} onClick={loadData}>
-                            更新
+                            {t('clean.refresh')}
                         </Button>
                         <Button
                             variant="danger"
@@ -97,22 +100,21 @@ export default function Cleaner() {
                             loading={loading}
                             onClick={() => setShowConfirm(true)}
                         >
-                            削除 ({selectedIds.size})
+                            {t('clean.delete', { n: selectedIds.size })}
                         </Button>
                     </div>
                 </div>
 
                 <Callout tone="warning">
-                    カテゴリを削除すると、その卓のチャンネル（ログを含む）が<strong>すべて</strong>消えます。<br />
-                    この操作は元に戻せません。残したいログがある場合は先にコピーしてください。
+                    {t('clean.warn')}
                 </Callout>
 
                 <Card flush className={styles.tableCard}>
                     {visible.length === 0 ? (
                         <EmptyState
                             icon={<FolderX size={28} />}
-                            title="削除可能なカテゴリが見つかりません"
-                            description={managedOnly ? 'このツールで作った卓が見つかりません。他のカテゴリも表示するには上のスイッチを切ってください' : undefined}
+                            title={t('clean.empty.title')}
+                            description={managedOnly ? t('clean.empty.desc') : undefined}
                         />
                     ) : (
                         <table className={styles.table}>
@@ -125,12 +127,12 @@ export default function Cleaner() {
                                                 if (allSelected) setSelectedIds(new Set());
                                                 else setSelectedIds(new Set(visible.map(c => c.id)));
                                             }}
-                                            aria-label="全選択"
+                                            aria-label={t('common.selectAll')}
                                         >
                                             <Check size={12} />
                                         </button>
                                     </th>
-                                    <th>カテゴリ名</th>
+                                    <th>{t('clean.th.name')}</th>
                                     <th>ID</th>
                                 </tr>
                             </thead>
@@ -145,7 +147,7 @@ export default function Cleaner() {
                                             <button
                                                 className={`${styles.checkbox} ${selectedIds.has(c.id) ? styles.checked : ''}`}
                                                 onClick={e => { e.stopPropagation(); toggleSelect(c.id); }}
-                                                aria-label={`${c.name} を選択`}
+                                                aria-label={c.name}
                                             >
                                                 <Check size={12} />
                                             </button>
@@ -153,8 +155,8 @@ export default function Cleaner() {
                                         <td>
                                             <div className={styles.nameCell}>
                                                 <span className={`${styles.catName} ${c.managed ? '' : styles.foreign}`}>{c.name}</span>
-                                                <Badge tone="neutral">{c.childCount} ch</Badge>
-                                                {c.managed && <Badge tone="accent">このツール</Badge>}
+                                                <Badge tone="neutral">{t('clean.badgeCh', { n: c.childCount })}</Badge>
+                                                {c.managed && <Badge tone="accent">{t('clean.badgeMine')}</Badge>}
                                             </div>
                                         </td>
                                         <td><code className={styles.catId}>{c.id}</code></td>
@@ -169,33 +171,32 @@ export default function Cleaner() {
             {/* Confirm Modal */}
             {showConfirm && (
                 <Modal
-                    title="削除の最終確認"
+                    title={t('clean.confirm.title')}
                     width={500}
                     onClose={() => setShowConfirm(false)}
                     footer={
                         <>
-                            <Button variant="secondary" onClick={() => setShowConfirm(false)}>キャンセル</Button>
+                            <Button variant="secondary" onClick={() => setShowConfirm(false)}>{t('common.cancel')}</Button>
                             <Button variant="danger" onClick={handleDelete} loading={loading}>
-                                本当に削除する
+                                {t('clean.confirm.go')}
                             </Button>
                         </>
                     }
                 >
                     <div className={styles.confirmBox}>
                         <div className={styles.confirmCount}>
-                            選択した <strong>{selectedIds.size}</strong> 個のカテゴリを削除します。
+                            {t('clean.confirm.count', { n: selectedIds.size })}
                         </div>
                         <ul className={styles.confirmList}>
                             {selectedCategories.slice(0, 8).map(c => (
                                 <li key={c.id}>{c.name}</li>
                             ))}
                             {selectedCategories.length > 8 && (
-                                <li>ほか {selectedCategories.length - 8} 件</li>
+                                <li>{t('clean.confirm.more', { n: selectedCategories.length - 8 })}</li>
                             )}
                         </ul>
                         <div className={styles.confirmWarn}>
-                            <strong>配下のチャンネルも全て完全に削除されます。</strong><br />
-                            この操作はDiscord上からデータを直接消去するため、復元はできません。
+                            {t('clean.confirm.warn')}
                         </div>
                     </div>
                 </Modal>
@@ -204,16 +205,16 @@ export default function Cleaner() {
             {/* Result Modal */}
             {result && (
                 <Modal
-                    title="削除完了"
-                    description="指定されたカテゴリの削除処理が終了しました。"
+                    title={t('clean.result.title')}
+                    description={t('clean.result.desc')}
                     width={600}
                 >
                     <div className={styles.resultTable}>
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>カテゴリID</th>
-                                    <th className={styles.right}>ステータス</th>
+                                    <th>{t('clean.th.catId')}</th>
+                                    <th className={styles.right}>{t('common.status')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -222,10 +223,10 @@ export default function Cleaner() {
                                         <td><code className={styles.catId}>{r.categoryId}</code></td>
                                         <td className={styles.right}>
                                             {r.success ? (
-                                                <Badge tone="success">成功</Badge>
+                                                <Badge tone="success">{t('common.success')}</Badge>
                                             ) : (
                                                 <>
-                                                    <Badge tone="danger">失敗</Badge>
+                                                    <Badge tone="danger">{t('common.failure')}</Badge>
                                                     <span className={styles.resultError}>{r.error}</span>
                                                 </>
                                             )}
@@ -236,7 +237,7 @@ export default function Cleaner() {
                         </table>
                     </div>
                     <div className={styles.resultFooter}>
-                        <Button onClick={() => setResult(null)}>閉じる</Button>
+                        <Button onClick={() => setResult(null)}>{t('common.close')}</Button>
                     </div>
                 </Modal>
             )}

@@ -16,12 +16,31 @@ import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import EmptyState from '../ui/EmptyState';
 import ConfirmDialog from '../ui/ConfirmDialog';
-import { useToast, errMsg } from '../ui/toastContext';
+import Modal from '../ui/Modal';
+import { useToast } from '../ui/toastContext';
 import { useUnsaved } from '../ui/unsavedContext';
+import { useI18n, apiErrMsg } from '../i18n';
 import styles from './PresetEditor.module.css';
+
+function AssetThumb({ assetId, onOpen }: { assetId: string; onOpen: (src: string) => void }) {
+    const [failed, setFailed] = useState(false);
+    if (failed) return null;
+    const src = `/assets/${assetId}`;
+    return (
+        <img
+            src={src}
+            className={styles.thumb}
+            alt=""
+            onError={() => setFailed(true)}
+            onClick={e => { e.stopPropagation(); onOpen(src); }}
+        />
+    );
+}
 
 export default function PresetEditor() {
     const toast = useToast();
+    const { t } = useI18n();
+    const errMsg = (e: unknown) => apiErrMsg(t, e);
     const { setDirty } = useUnsaved();
     const [presets, setPresets] = useState<Preset[]>([]);
     const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
@@ -31,6 +50,7 @@ export default function PresetEditor() {
     const [loading, setLoading] = useState(false);
     const [confirmDeletePreset, setConfirmDeletePreset] = useState<string | null>(null);
     const [confirmDeleteChannel, setConfirmDeleteChannel] = useState<number | null>(null);
+    const [previewSrc, setPreviewSrc] = useState<string | null>(null);
     const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
     const isDirty = editingPreset !== null && JSON.stringify(editingPreset) !== savedSnapshot;
@@ -73,7 +93,7 @@ export default function PresetEditor() {
     const handleCreate = () => guardDirty(() => {
         const newPreset: Preset = {
             presetId: crypto.randomUUID(),
-            presetName: '無題のプリセット',
+            presetName: t('preset.untitled'),
             channels: [],
             posts: []
         };
@@ -90,7 +110,7 @@ export default function PresetEditor() {
     const handleSave = async () => {
         if (!editingPreset) return;
         if (editingPreset.channels.length === 0) {
-            toast('最低1つのチャンネル構成が必要です', 'error');
+            toast(t('preset.needChannel'), 'error');
             return;
         }
         const saved = editingPreset;
@@ -99,7 +119,7 @@ export default function PresetEditor() {
             await api.savePreset(saved);
             await loadPresets();
             setSavedSnapshot(JSON.stringify(saved));
-            toast('保存しました', 'success');
+            toast(t('preset.saved'), 'success');
         } catch (e) {
             toast(errMsg(e), 'error');
         } finally {
@@ -110,7 +130,7 @@ export default function PresetEditor() {
     const handleDuplicate = (sourcePreset: Preset, e: React.MouseEvent) => {
         e.stopPropagation();
         guardDirty(async () => {
-            const duplicatedPreset = editor.duplicatePreset(sourcePreset);
+            const duplicatedPreset = editor.duplicatePreset(sourcePreset, t('preset.copySuffix'));
             setLoading(true);
             try {
                 await api.savePreset(duplicatedPreset);
@@ -182,7 +202,7 @@ export default function PresetEditor() {
                 filename: file.name
             });
         } catch (err) {
-            toast('アップロード失敗: ' + errMsg(err), 'error');
+            toast(t('preset.uploadFail', { msg: errMsg(err) }), 'error');
         }
     };
 
@@ -199,20 +219,20 @@ export default function PresetEditor() {
         <div className={styles.layout}>
             {/* Sidebar: Preset List */}
             <div className={styles.listPane}>
-                <Button icon={<Plus size={16} />} onClick={handleCreate}>新規プリセット</Button>
-                <div className={styles.listHeading}>プリセット</div>
+                <Button icon={<Plus size={16} />} onClick={handleCreate}>{t('preset.new')}</Button>
+                <div className={styles.listHeading}>{t('preset.list')}</div>
                 {presets.length === 0 && !editingPreset ? (
                     <EmptyState
                         icon={<LayoutList size={28} />}
-                        title="プリセットがありません"
-                        description="卓で毎回使うチャンネル構成をプリセットとして登録できます"
+                        title={t('preset.empty.title')}
+                        description={t('preset.empty.desc')}
                     />
                 ) : (
                     <div className={`${styles.list} stagger`}>
                         {editingPreset && !presets.some(p => p.presetId === editingPreset.presetId) && (
                             <div className={`${styles.presetRow} ${styles.selected}`}>
                                 <span className={styles.presetName}>{editingPreset.presetName}</span>
-                                <Badge tone="warning">未保存</Badge>
+                                <Badge tone="warning">{t('unsaved.listBadge')}</Badge>
                             </div>
                         )}
                         {presets.map((p, i) => (
@@ -224,10 +244,10 @@ export default function PresetEditor() {
                             >
                                 <span className={styles.presetName}>{p.presetName}</span>
                                 <div className={styles.rowActions}>
-                                    <IconButton size="sm" title="複製" onClick={(e) => handleDuplicate(p, e)}>
+                                    <IconButton size="sm" title={t('preset.duplicate')} onClick={(e) => handleDuplicate(p, e)}>
                                         <Copy size={13} />
                                     </IconButton>
-                                    <IconButton size="sm" tone="danger" title="削除" onClick={(e) => requestDeletePreset(p.presetId, e)}>
+                                    <IconButton size="sm" tone="danger" title={t('preset.delete')} onClick={(e) => requestDeletePreset(p.presetId, e)}>
                                         <Trash2 size={13} />
                                     </IconButton>
                                 </div>
@@ -243,30 +263,30 @@ export default function PresetEditor() {
                     <>
                         <div className={styles.editorScroll}>
                             <div className={styles.editorInner}>
-                                <Field label="プリセット名">
+                                <Field label={t('preset.name')}>
                                     <Input
                                         className={styles.nameInput}
                                         value={editingPreset.presetName}
                                         onChange={e => setEditingPreset({ ...editingPreset, presetName: e.target.value })}
-                                        placeholder="例：クトゥルフ 1卓用"
+                                        placeholder={t('preset.namePh')}
                                     />
                                 </Field>
 
                                 {/* Channels Section */}
                                 <Card
-                                    header="チャンネル構成"
+                                    header={t('preset.channels')}
                                     actions={
                                         <>
-                                            <Button variant="secondary" size="sm" icon={<Hash size={16} />} onClick={() => setEditingPreset(p => p && editor.addChannel(p, 'text'))}>テキスト</Button>
-                                            <Button variant="secondary" size="sm" icon={<Volume2 size={16} />} onClick={() => setEditingPreset(p => p && editor.addChannel(p, 'voice'))}>ボイス</Button>
+                                            <Button variant="secondary" size="sm" icon={<Hash size={16} />} onClick={() => setEditingPreset(p => p && editor.addChannel(p, 'text', t('preset.newText')))}>{t('preset.addText')}</Button>
+                                            <Button variant="secondary" size="sm" icon={<Volume2 size={16} />} onClick={() => setEditingPreset(p => p && editor.addChannel(p, 'voice', t('preset.newVoice')))}>{t('preset.addVoice')}</Button>
                                         </>
                                     }
                                 >
                                     <div className={styles.cardHint}>
-                                        チャンネル名はそのまま Discord に作られます。秘匿 ＝ 参加者には見せず GM だけが見えるチャンネル（例: GM用メモ）。
+                                        {t('preset.channels.hint')}
                                     </div>
                                     {editingPreset.channels.length === 0 ? (
-                                        <div className={styles.emptyChannels}>チャンネルがありません</div>
+                                        <div className={styles.emptyChannels}>{t('preset.channels.empty')}</div>
                                     ) : (
                                         <div className={styles.channelList}>
                                             {editingPreset.channels.map((ch, idx) => (
@@ -290,8 +310,8 @@ export default function PresetEditor() {
                                                             value={ch.type || 'text'}
                                                             onChange={e => setEditingPreset(p => p && editor.updateChannel(p, idx, { type: e.target.value as 'text' | 'voice' }))}
                                                         >
-                                                            <option value="text">テキスト</option>
-                                                            <option value="voice">ボイス</option>
+                                                            <option value="text">{t('preset.addText')}</option>
+                                                            <option value="voice">{t('preset.addVoice')}</option>
                                                         </Select>
                                                     </div>
                                                     <Input
@@ -301,13 +321,13 @@ export default function PresetEditor() {
                                                     <button
                                                         className={`${styles.hiddenToggle} ${ch.isHidden ? styles.hidden : ''}`}
                                                         onClick={() => setEditingPreset(p => p && editor.updateChannel(p, idx, { isHidden: !ch.isHidden }))}
-                                                        title={ch.isHidden ? '秘匿チャンネル（クリックで公開に変更）' : '公開チャンネル（クリックで秘匿に変更）'}
+                                                        title={ch.isHidden ? t('preset.hiddenTitleOn') : t('preset.hiddenTitleOff')}
                                                     >
                                                         {ch.isHidden ? <Lock size={13} /> : <Unlock size={13} />}
-                                                        {ch.isHidden ? '秘匿' : '公開'}
+                                                        {ch.isHidden ? t('preset.hidden') : t('preset.public')}
                                                     </button>
-                                                    {ch.type === 'voice' && <span className={styles.noPost}>投稿なし</span>}
-                                                    <IconButton tone="danger" title="削除" onClick={() => setConfirmDeleteChannel(idx)}>
+                                                    {ch.type === 'voice' && <span className={styles.noPost}>{t('preset.noPost')}</span>}
+                                                    <IconButton tone="danger" title={t('preset.delete')} onClick={() => setConfirmDeleteChannel(idx)}>
                                                         <Trash2 size={16} />
                                                     </IconButton>
                                                 </div>
@@ -324,10 +344,10 @@ export default function PresetEditor() {
                                     return (
                                         <Card
                                             key={ch.key}
-                                            header={<><Hash size={16} /> {ch.name} への投稿内容</>}
+                                            header={<><Hash size={16} /> {t('preset.postTo', { name: ch.name })}</>}
                                         >
                                             <div className={styles.cardHint}>
-                                                卓を立てたとき、このチャンネルに自動で投稿される内容です（上から順に投稿）。
+                                                {t('preset.post.hint')}
                                             </div>
                                             <div className={styles.postList}>
                                                 {items.map((item, idx) => (
@@ -353,18 +373,19 @@ export default function PresetEditor() {
                                                         <div className={styles.postBody}>
                                                             {item.type === 'text' ? (
                                                                 <>
-                                                                    <div className={styles.postLabel}>テキスト</div>
+                                                                    <div className={styles.postLabel}>{t('preset.post.text')}</div>
                                                                     <Textarea
                                                                         rows={3}
                                                                         value={item.content || ''}
                                                                         onChange={e => updatePostItem(ch.key, idx, { content: e.target.value })}
-                                                                        placeholder="例：はじめまして、GM の〇〇です。このチャンネルではシナリオの概要を…"
+                                                                        placeholder={t('preset.post.textPh')}
                                                                     />
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    <div className={styles.postLabel}>画像ファイル</div>
+                                                                    <div className={styles.postLabel}>{t('preset.post.file')}</div>
                                                                     <div className={styles.fileRow}>
+                                                                        {item.assetId && <AssetThumb assetId={item.assetId} onOpen={setPreviewSrc} />}
                                                                         <input
                                                                             type="file"
                                                                             hidden
@@ -377,28 +398,28 @@ export default function PresetEditor() {
                                                                             icon={<ImagePlus size={16} />}
                                                                             onClick={() => fileInputs.current[`${ch.key}-${idx}`]?.click()}
                                                                         >
-                                                                            画像を選択
+                                                                            {t('preset.post.pick')}
                                                                         </Button>
                                                                         {item.filename && <Badge tone="success">{item.filename}</Badge>}
                                                                     </div>
-                                                                    <div className={styles.postLabel}>キャプション (任意)</div>
+                                                                    <div className={styles.postLabel}>{t('preset.post.caption')}</div>
                                                                     <Input
                                                                         value={item.caption || ''}
                                                                         onChange={e => updatePostItem(ch.key, idx, { caption: e.target.value })}
-                                                                        placeholder="画像と一緒に送る一言（任意）"
+                                                                        placeholder={t('preset.post.captionPh')}
                                                                     />
                                                                 </>
                                                             )}
                                                         </div>
-                                                        <IconButton size="sm" tone="danger" title="削除" onClick={() => removePostItem(ch.key, idx)}>
+                                                        <IconButton size="sm" tone="danger" title={t('preset.delete')} onClick={() => removePostItem(ch.key, idx)}>
                                                             <X size={16} />
                                                         </IconButton>
                                                     </div>
                                                 ))}
 
                                                 <div className={styles.postAddRow}>
-                                                    <Button variant="ghost" size="sm" icon={<Type size={16} />} onClick={() => addPostItem(ch.key, 'text')}>テキストを追加</Button>
-                                                    <Button variant="ghost" size="sm" icon={<ImagePlus size={16} />} onClick={() => addPostItem(ch.key, 'file')}>画像を追加</Button>
+                                                    <Button variant="ghost" size="sm" icon={<Type size={16} />} onClick={() => addPostItem(ch.key, 'text')}>{t('preset.post.addText')}</Button>
+                                                    <Button variant="ghost" size="sm" icon={<ImagePlus size={16} />} onClick={() => addPostItem(ch.key, 'file')}>{t('preset.post.addImage')}</Button>
                                                 </div>
                                             </div>
                                         </Card>
@@ -409,26 +430,26 @@ export default function PresetEditor() {
 
                         {/* Fixed Action Bar at bottom */}
                         <div className={styles.footerBar}>
-                            {isDirty && <Badge tone="warning">未保存の変更</Badge>}
+                            {isDirty && <Badge tone="warning">{t('unsaved.badge')}</Badge>}
                             <Button size="lg" icon={<Save size={18} />} loading={loading} onClick={handleSave}>
-                                保存
+                                {t('common.save')}
                             </Button>
                         </div>
                     </>
                 ) : (
                     <EmptyState
                         icon={<MousePointerClick size={28} />}
-                        title="プリセットを選択または作成"
-                        description="左からプリセットを選ぶか、新規作成してください"
+                        title={t('preset.pick.title')}
+                        description={t('preset.pick.desc')}
                     />
                 )}
             </div>
 
             {pendingDiscard && (
                 <ConfirmDialog
-                    title="未保存の変更"
-                    message="保存していない変更があります。破棄して続けますか？"
-                    confirmLabel="破棄して続ける"
+                    title={t('unsaved.title')}
+                    message={t('unsaved.message')}
+                    confirmLabel={t('unsaved.confirm')}
                     tone="danger"
                     onConfirm={() => { const action = pendingDiscard; setPendingDiscard(null); action(); }}
                     onCancel={() => setPendingDiscard(null)}
@@ -437,9 +458,9 @@ export default function PresetEditor() {
 
             {confirmDeletePreset && (
                 <ConfirmDialog
-                    title="プリセットの削除"
-                    message="このプリセットを削除しますか？"
-                    confirmLabel="削除する"
+                    title={t('preset.delPreset.title')}
+                    message={t('preset.delPreset.msg')}
+                    confirmLabel={t('preset.delete.go')}
                     tone="danger"
                     loading={loading}
                     onConfirm={() => handleDeleteById(confirmDeletePreset)}
@@ -449,13 +470,19 @@ export default function PresetEditor() {
 
             {confirmDeleteChannel !== null && (
                 <ConfirmDialog
-                    title="チャンネルの削除"
-                    message="チャンネルを削除しますか？"
-                    confirmLabel="削除する"
+                    title={t('preset.delChannel.title')}
+                    message={t('preset.delChannel.msg')}
+                    confirmLabel={t('preset.delete.go')}
                     tone="danger"
                     onConfirm={() => deleteChannel(confirmDeleteChannel)}
                     onCancel={() => setConfirmDeleteChannel(null)}
                 />
+            )}
+
+            {previewSrc && (
+                <Modal title="" width="fit-content" onClose={() => setPreviewSrc(null)}>
+                    <img src={previewSrc} className={styles.previewImg} alt="" />
+                </Modal>
             )}
         </div>
     );
