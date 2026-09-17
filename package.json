@@ -1,6 +1,6 @@
 {
   "name": "takusaba-builder",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "プリセットからまとめて作成する卓鯖ビルダー",
   "main": "build/main.cjs",
   "author": "reverinudog",
@@ -20,7 +20,8 @@
     "dist:win": "npm run build:app && electron-builder --win",
     "dist:mac": "npm run build:app && electron-builder --mac",
     "icon": "node scripts/make-icon.cjs",
-    "booth": "node scripts/make-booth-zip.mjs"
+    "booth": "node scripts/make-booth-zip.mjs",
+    "dist:store": "npm run build:app && electron-builder --win appx --publish never"
   },
   "keywords": [],
   "devDependencies": {

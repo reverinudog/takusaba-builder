@@ -132,6 +132,12 @@ const setupUpdates = () => {
         return;
     }
 
+    // Microsoft Store (AppX) builds are updated by the Store, not electron-updater
+    if (process.windowsStore) {
+        setUpdateState({ status: 'unsupported' });
+        return;
+    }
+
     if (process.platform === 'win32') {
         autoUpdater.autoDownload = false;
         autoUpdater.autoInstallOnAppQuit = true;

@@ -95,6 +95,7 @@ TRPG の卓（セッション）ごとに必要な Discord チャンネル一式
   - Mac: `~/Library/Application Support/TakusabaBuilder/data`
 - このアプリが通信するのは **Discord の API だけ**です。データが外部サーバーに送られることはありません
 - データフォルダにはトークンが含まれます。**他人に渡さないでください**
+- プライバシーポリシー: [docs/privacy.md](docs/privacy.md)
 
 ## 開発者向け
 

@@ -20,6 +20,15 @@ win:
       arch: [x64, arm64]
   icon: build-resources/icon.png
   artifactName: TakusabaBuilder-Setup-${version}-${arch}.${ext}
+appx:
+  applicationId: TakusabaBuilder
+  # Values from Partner Center > 卓鯖ビルダー > Product identity (Store ID 9N8TJVFFQFCM)
+  identityName: kawaken.336635FC90E13
+  publisher: CN=F9DB721D-4BB2-4721-A66D-1BCA13024325
+  publisherDisplayName: kawaken
+  displayName: 卓鯖ビルダー
+  languages: [ja-JP, en-US, ko-KR, zh-Hans, zh-Hant]
+  artifactName: TakusabaBuilder-${version}-store.${ext}
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

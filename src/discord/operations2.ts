@@ -13,8 +13,8 @@ import { getPresets, getAssetPath } from '../data';
 import {
     VIEW_CHANNEL,
     SEND_MESSAGES,
-    MANAGE_CHANNELS,
-    MANAGE_ROLES
+    ATTACH_FILES,
+    READ_MESSAGE_HISTORY
 } from './permissions';
 import fs from 'fs';
 
@@ -104,7 +104,9 @@ export const runCreate = async (presetId: string, categoryName: string, memberId
             {
                 id: botUser.id,
                 type: 1,
-                allow: (VIEW_CHANNEL | SEND_MESSAGES | MANAGE_CHANNELS | MANAGE_ROLES).toString()
+                // Discord rejects overwrites granting permissions the bot lacks (50013);
+                // MANAGE_ROLES in a channel overwrite additionally requires Administrator.
+                allow: (VIEW_CHANNEL | SEND_MESSAGES | ATTACH_FILES | READ_MESSAGE_HISTORY).toString()
             },
             ...memberIds.map(uid => ({
                 id: uid,
@@ -169,6 +171,9 @@ export const runCreate = async (presetId: string, categoryName: string, memberId
         let errorMsg = e.message;
         if (e.rawError) {
             errorMsg += ` (Discord: ${JSON.stringify(e.rawError)})`;
+        }
+        if (e.code === 50013 || e.rawError?.code === 50013) {
+            errorMsg = `Botの権限が不足しています（Discord 50013）。Botのロールに「チャンネルの管理」「ロールの管理」があるか、サーバー設定で確認してください。 ${errorMsg}`;
         }
         result.errors.push(`Execution failed: ${errorMsg}`);
     }

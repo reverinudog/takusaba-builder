@@ -17,3 +17,4 @@
 - Run Electron with `env -u ELECTRON_RUN_AS_NODE` in this environment (Devin CLI sets it globally); otherwise the app runs as plain Node and exits.
 - Dev: `npm run electron:dev`. Packaged data dir is `%APPDATA%\TakusabaBuilder\data` (ASCII-forced via `app.setPath`); dev uses repo `data/`.
 - Mac builds (`npm run dist:mac`) only work on macOS — use the GitHub Actions workflow (`.github/workflows/release.yml`, tag `v*`).
+- Store build: `npm run dist:store` → `release/*-store.appx`, upload to Partner Center manually; `process.windowsStore` disables the in-app updater; identity values in electron-builder.yml must match Partner Center.

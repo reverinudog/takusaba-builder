@@ -103,6 +103,11 @@ app.use(['/api/guild', '/api/run', '/api/debug'], (req, res, next) => {
 // A Discord 401 (DiscordAPIError) means the stored token is dead — surface a
 // readable Japanese hint instead of the raw upstream message.
 const sendError = (res: express.Response, e: any) => {
+    if (e?.code === 50013 || e?.rawError?.code === 50013) {
+        return res.status(500).json({
+            error: `Botの権限が不足しています（Discord 50013）。Botのロールに「チャンネルの管理」「ロールの管理」があるか、サーバー設定で確認してください。 ${e.message}`
+        });
+    }
     if (e?.status === 401) {
         return res.status(401).json({
             error: 'Discord に接続できません。Bot トークンが無効か、Developer Portal でリセットされた可能性があります。左下の「セットアップ」からやり直してください。',
