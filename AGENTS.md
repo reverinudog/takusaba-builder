@@ -18,3 +18,4 @@
 - Dev: `npm run electron:dev`. Packaged data dir is `%APPDATA%\TakusabaBuilder\data` (ASCII-forced via `app.setPath`); dev uses repo `data/`.
 - Mac builds (`npm run dist:mac`) only work on macOS — use the GitHub Actions workflow (`.github/workflows/release.yml`, tag `v*`).
 - Store build: `npm run dist:store` → `release/*-store.appx`, upload to Partner Center manually; `process.windowsStore` disables the in-app updater; identity values in electron-builder.yml must match Partner Center.
+- Auto-update E2E on this PC: 卓鯖ビルダー is installed **per-machine** (`C:\Program Files\takusaba-builder`, HKLM uninstall key), so any NSIS (re)install — including electron-updater's silent `quitAndInstall(true, true)` — triggers a UAC prompt that a non-interactive shell cannot approve (exit 1223). Per-user installs update silently. Use `SRB_UPDATE_FEED_URL=http://127.0.0.1:<port>/` with a `generic` feed dir (exe + blockmap + latest.yml) to test updates against a local server.

@@ -189,7 +189,7 @@ export const ja = {
     'checkdetail.remedy': '対処法',
     'checkdetail.missingShort': '（不足: {perms}）',
     'remedy.token': 'トークンが無効です。ステップ2に戻ってもう一度貼り付けてください。',
-    'remedy.intent_members': 'Developer Portal → 左メニュー「Bot」→「SERVER MEMBERS INTENT」を ON →「Save Changes」→ ここで「再チェック」。',
+    'remedy.intent_members': 'Developer Portal → 左メニュー「Bot」→「Server Members Intent」を ON →「変更を保存」→ ここで「再チェック」。',
     'remedy.guild': 'Bot がこのサーバーに参加していません。ステップ3の招待リンクから招待してください。',
     'remedy.permissions': 'Bot の権限が足りません。招待リンクをもう一度開いて同じサーバーを選び直すと権限が更新されます。それでも直らない場合は Discord のサーバー設定 →「ロール」→ Bot の名前のロールに不足権限を付与してください。',
     'remedy.members_fetch': 'メンバー一覧を取得できません。上の Intent と権限の両方を確認してください。',
