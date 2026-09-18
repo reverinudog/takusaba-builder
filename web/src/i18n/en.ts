@@ -261,5 +261,11 @@ export const en: Messages = {
     'update.openPage': 'Open download page',
     'update.error': 'Failed to check for updates',
     'update.recheck': 'Re-check',
-    'update.toast': 'A new version v{latest} is available. You can update it from Help.'
+    'update.toast': 'A new version v{latest} is available. You can update it from Help.',
+    'update.modal.title': 'Version v{latest} is available',
+    'update.modal.body': 'Updating brings bug fixes and new features. You can update now, or later from Help.',
+    'update.later': 'Later',
+    'update.modal.help': 'Details in Help',
+    'update.applyNow': 'Update and restart now',
+    'update.applyNote': 'The app restarts automatically after the download and applies the update.'
 };

@@ -108,6 +108,11 @@ const sendError = (res: express.Response, e: any) => {
             error: `Botの権限が不足しています（Discord 50013）。Botのロールに「チャンネルの管理」「ロールの管理」があるか、サーバー設定で確認してください。 ${e.message}`
         });
     }
+    if (e?.code === 60003 || e?.rawError?.code === 60003) {
+        return res.status(500).json({
+            error: `サーバー設定で「モデレーション操作に2段階認証を要求」が有効なため、Bot を作成したアカウントに2段階認証（2FA）を設定する必要があります。 ${e.message}`
+        });
+    }
     if (e?.status === 401) {
         return res.status(401).json({
             error: 'Discord に接続できません。Bot トークンが無効か、Developer Portal でリセットされた可能性があります。左下の「セットアップ」からやり直してください。',
@@ -313,6 +318,10 @@ app.post('/api/system/update/download', (req, res) => {
 });
 app.post('/api/system/update/install', (req, res) => {
     updateEvents.emit('install');
+    res.json({ ok: true });
+});
+app.post('/api/system/update/apply', (req, res) => {
+    updateEvents.emit('apply');
     res.json({ ok: true });
 });
 

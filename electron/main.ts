@@ -139,14 +139,21 @@ const setupUpdates = () => {
     }
 
     if (process.platform === 'win32') {
+        // E2E/dev hook: point the updater at a local generic feed
+        const feed = process.env.SRB_UPDATE_FEED_URL;
+        if (feed) autoUpdater.setFeedURL({ provider: 'generic', url: feed });
         autoUpdater.autoDownload = false;
         autoUpdater.autoInstallOnAppQuit = true;
         autoUpdater.allowPrerelease = false;
+        let installAfterDownload = false;
         autoUpdater.on('checking-for-update', () => setUpdateState({ status: 'checking' }));
         autoUpdater.on('update-available', i => setUpdateState({ status: 'available', latestVersion: i.version, manual: false }));
         autoUpdater.on('update-not-available', i => setUpdateState({ status: 'not-available', latestVersion: (i as any)?.version }));
         autoUpdater.on('download-progress', p => setUpdateState({ status: 'downloading', progress: Math.round(p.percent) }));
-        autoUpdater.on('update-downloaded', i => setUpdateState({ status: 'downloaded', latestVersion: i.version }));
+        autoUpdater.on('update-downloaded', i => {
+            setUpdateState({ status: 'downloaded', latestVersion: i.version });
+            if (installAfterDownload) autoUpdater.quitAndInstall(true, true);
+        });
         const onUpdaterError = (e: unknown) => {
             const msg = e instanceof Error ? e.message : String(e);
             // A release without update metadata (e.g. uploaded manually) means no update is installable
@@ -163,7 +170,11 @@ const setupUpdates = () => {
         updateEvents.on('download', () => {
             autoUpdater.downloadUpdate().catch(onUpdaterError);
         });
-        updateEvents.on('install', () => autoUpdater.quitAndInstall(false, true));
+        updateEvents.on('install', () => autoUpdater.quitAndInstall(true, true));
+        updateEvents.on('apply', () => {
+            installAfterDownload = true;
+            autoUpdater.downloadUpdate().catch(onUpdaterError);
+        });
     } else if (process.platform === 'darwin') {
         updateEvents.on('check', () => { checkMacUpdate(); });
     } else {

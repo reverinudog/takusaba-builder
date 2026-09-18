@@ -4,6 +4,7 @@ import PresetEditor from './components/PresetEditor';
 import Runner from './components/Runner';
 import Cleaner from './components/Cleaner';
 import Help from './components/Help';
+import UpdateModal from './components/UpdateModal';
 import SetupWizard from './components/setup/SetupWizard';
 import { ToastProvider } from './ui/Toast';
 import { useToast } from './ui/toastContext';
@@ -69,32 +70,45 @@ function Shell() {
     const [langPicked, setLangPicked] = useState(false);
     const [langModalOpen, setLangModalOpen] = useState(false);
     const [updatePending, setUpdatePending] = useState(false);
-    const updateNotifiedRef = useRef<string | null>(null);
+    const [updateState, setUpdateState] = useState<api.UpdateState | null>(null);
+    const [updateModalOpen, setUpdateModalOpen] = useState(false);
+    const dismissedKeyRef = useRef<string | null>(null);
     const updatePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Poll update status: first check 30s after startup, then every 10 minutes
+    const pollUpdate = () => api.getUpdateStatus().then(u => {
+        setUpdateState(u);
+        setUpdatePending(u.status === 'available' || u.status === 'downloaded');
+    }).catch(() => { });
+
+    // Poll update status: first check 30s after startup, then every 10 minutes.
+    // __SRB_UPDATE_POLL_MS overrides the first delay for dev/testing.
     useEffect(() => {
-        const poll = () => api.getUpdateStatus().then(u => {
-            const ready = u.status === 'available' || u.status === 'downloaded';
-            setUpdatePending(ready);
-            if (ready) {
-                const key = `${u.status}:${u.latestVersion ?? ''}`;
-                if (updateNotifiedRef.current !== key) {
-                    updateNotifiedRef.current = key;
-                    toast(t('update.toast', { latest: u.latestVersion ?? '' }), 'info');
-                }
-            }
-        }).catch(() => { });
         const first = setTimeout(() => {
-            poll();
-            updatePollRef.current = setInterval(poll, 10 * 60 * 1000);
-        }, 30000);
+            pollUpdate();
+            updatePollRef.current = setInterval(pollUpdate, 10 * 60 * 1000);
+        }, Number((window as unknown as { __SRB_UPDATE_POLL_MS?: number }).__SRB_UPDATE_POLL_MS) || 30000);
         return () => {
             clearTimeout(first);
             if (updatePollRef.current) clearInterval(updatePollRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Open the modal when an update becomes available/downloaded (once per key)
+    useEffect(() => {
+        if (!updateState) return;
+        const ready = updateState.status === 'available' || updateState.status === 'downloaded';
+        const key = `${updateState.status}:${updateState.latestVersion ?? ''}`;
+        if (ready && key !== dismissedKeyRef.current) setUpdateModalOpen(true);
+    }, [updateState]);
+
+    // While the modal is open, poll every 2s so download progress is live
+    useEffect(() => {
+        if (!updateModalOpen) return;
+        const iv = setInterval(pollUpdate, 2000);
+        return () => clearInterval(iv);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [updateModalOpen]);
 
     const refreshStatus = () =>
         api.getSetupStatus()
@@ -245,6 +259,21 @@ function Shell() {
                     tone="danger"
                     onConfirm={() => { const tab = pendingTab; setPendingTab(null); doSwitchTab(tab); }}
                     onCancel={() => setPendingTab(null)}
+                />
+            )}
+
+            {updateModalOpen && updateState && (
+                <UpdateModal
+                    update={updateState}
+                    onLater={() => {
+                        dismissedKeyRef.current = `${updateState.status}:${updateState.latestVersion ?? ''}`;
+                        setUpdateModalOpen(false);
+                    }}
+                    onGoHelp={() => {
+                        dismissedKeyRef.current = `${updateState.status}:${updateState.latestVersion ?? ''}`;
+                        setUpdateModalOpen(false);
+                        switchTab('help');
+                    }}
                 />
             )}
 

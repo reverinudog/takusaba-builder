@@ -261,5 +261,11 @@ export const zhHant: Messages = {
     'update.openPage': '開啟下載頁面',
     'update.error': '檢查更新失敗',
     'update.recheck': '重新檢查',
-    'update.toast': '新版本 v{latest} 可用。可在說明中更新。'
+    'update.toast': '新版本 v{latest} 可用。可在說明中更新。',
+    'update.modal.title': '新版本 v{latest} 可用',
+    'update.modal.body': '更新可獲得問題修復和新功能。可以立即更新，也可以稍後從「說明」中更新。',
+    'update.later': '稍後',
+    'update.modal.help': '在說明中查看詳情',
+    'update.applyNow': '立即更新並重新啟動',
+    'update.applyNote': '下載完成後，應用程式將自動重新啟動並套用更新。'
 };

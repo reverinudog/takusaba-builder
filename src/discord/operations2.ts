@@ -175,6 +175,9 @@ export const runCreate = async (presetId: string, categoryName: string, memberId
         if (e.code === 50013 || e.rawError?.code === 50013) {
             errorMsg = `Botの権限が不足しています（Discord 50013）。Botのロールに「チャンネルの管理」「ロールの管理」があるか、サーバー設定で確認してください。 ${errorMsg}`;
         }
+        if (e.code === 60003 || e.rawError?.code === 60003) {
+            errorMsg = `サーバー設定で「モデレーション操作に2段階認証を要求」が有効なため、Bot を作成したアカウントに2段階認証（2FA）を設定する必要があります。 ${errorMsg}`;
+        }
         result.errors.push(`Execution failed: ${errorMsg}`);
     }
 
@@ -215,7 +218,14 @@ export const runDelete = async (categoryIds: string[]) => {
             result.success = true;
 
         } catch (e: any) {
-            result.error = e.message;
+            let errorMsg = e.message;
+            if (e.code === 50013 || e.rawError?.code === 50013 || e.code === 50001 || e.rawError?.code === 50001) {
+                errorMsg = `Bot がこのカテゴリを閲覧・管理できません（このツール以外で作成された非公開カテゴリの可能性）。 ${errorMsg}`;
+            }
+            if (e.code === 60003 || e.rawError?.code === 60003) {
+                errorMsg = `サーバー設定で「モデレーション操作に2段階認証を要求」が有効なため、Bot を作成したアカウントに2段階認証（2FA）を設定する必要があります。 ${errorMsg}`;
+            }
+            result.error = errorMsg;
         }
         results.push(result);
     }

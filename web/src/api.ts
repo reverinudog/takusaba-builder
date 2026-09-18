@@ -176,6 +176,9 @@ export const downloadUpdate = async (): Promise<{ ok: true }> => {
 export const installUpdate = async (): Promise<{ ok: true }> => {
     return request('/system/update/install', { method: 'POST' });
 };
+export const applyUpdate = async (): Promise<{ ok: true }> => {
+    return request('/system/update/apply', { method: 'POST' });
+};
 
 export type RunDeleteResult = { categoryId: string, success: boolean, error?: string }[];
 export const runDelete = async (categoryIds: string[]): Promise<RunDeleteResult> => {
