@@ -263,9 +263,10 @@ export const zhHans: Messages = {
     'update.recheck': '重新检查',
     'update.toast': '新版本 v{latest} 可用。可在帮助中更新。',
     'update.modal.title': '新版本 v{latest} 可用',
-    'update.modal.body': '更新可获得问题修复和新功能。可以立即更新，也可以稍后从「帮助」中更新。',
+    'update.modal.body': '更新可获得问题修复和新功能。可以立即更新，也可以稍后点击左下角的"有可用更新"按钮更新。',
     'update.later': '稍后',
-    'update.modal.help': '在帮助中查看详情',
+    'update.navButton': '有可用更新',
+    'update.modal.help': '查看详情',
     'update.applyNow': '立即更新并重启',
     'update.applyNote': '下载完成后，应用将自动重启并应用更新。'
 };

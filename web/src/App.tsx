@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Hash, LayoutList, Play, Trash2, Settings2, LifeBuoy, Languages } from 'lucide-react';
+import { Hash, LayoutList, Play, Trash2, Settings2, LifeBuoy, Languages, Download } from 'lucide-react';
 import PresetEditor from './components/PresetEditor';
 import Runner from './components/Runner';
 import Cleaner from './components/Cleaner';
@@ -11,6 +11,7 @@ import { useToast } from './ui/toastContext';
 import { UnsavedProvider, useUnsaved } from './ui/unsavedContext';
 import ConfirmDialog from './ui/ConfirmDialog';
 import Modal from './ui/Modal';
+import Button from './ui/Button';
 import Spinner from './ui/Spinner';
 import { I18nProvider, useI18n, LANGS, storedLang, type Lang } from './i18n';
 import * as api from './api';
@@ -222,6 +223,16 @@ function Shell() {
                         {t('nav.language')}
                     </button>
                     {NAV_BOTTOM.map(renderNavItem)}
+                    {(updateState?.status === 'available' || updateState?.status === 'downloaded') && (
+                        <Button
+                            size="sm"
+                            icon={<Download size={14} />}
+                            className={styles.navUpdate}
+                            onClick={() => { dismissedKeyRef.current = null; setUpdateModalOpen(true); }}
+                        >
+                            {t('update.navButton')}
+                        </Button>
+                    )}
                 </nav>
 
                 <div className={styles.status}>

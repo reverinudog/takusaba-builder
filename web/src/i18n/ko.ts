@@ -263,9 +263,10 @@ export const ko: Messages = {
     'update.recheck': '다시 확인',
     'update.toast': '새 버전 v{latest} 가 있습니다. 도움말에서 업데이트할 수 있습니다.',
     'update.modal.title': '새 버전 v{latest} 가 있습니다',
-    'update.modal.body': '업데이트하면 버그 수정과 새 기능이 반영됩니다. 지금 업데이트하거나 나중에 도움말에서 할 수 있습니다.',
+    'update.modal.body': '업데이트하면 버그 수정과 새 기능이 반영됩니다. 지금 업데이트하거나 나중에 왼쪽 아래의 "업데이트 있음" 버튼에서 할 수 있습니다.',
     'update.later': '나중에',
-    'update.modal.help': '도움말에서 자세히 보기',
+    'update.navButton': '업데이트 있음',
+    'update.modal.help': '자세히 보기',
     'update.applyNow': '지금 업데이트하고 다시 시작',
     'update.applyNote': '다운로드가 끝나면 앱이 자동으로 다시 시작되어 업데이트를 적용합니다.'
 };

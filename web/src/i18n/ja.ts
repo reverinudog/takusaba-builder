@@ -272,9 +272,10 @@ export const ja = {
     'update.recheck': '再確認',
     'update.toast': '新しいバージョン v{latest} があります。ヘルプから更新できます',
     'update.modal.title': '新しいバージョン v{latest} があります',
-    'update.modal.body': '更新すると不具合の修正や新機能が反映されます。今すぐ更新するか、あとで「ヘルプ」から更新できます。',
+    'update.modal.body': '更新すると不具合の修正や新機能が反映されます。今すぐ更新するか、あとで左下の「更新があります」ボタンから更新できます。',
     'update.later': '後で',
-    'update.modal.help': 'ヘルプで詳細を見る',
+    'update.navButton': '更新があります',
+    'update.modal.help': '詳細を見る',
     'update.applyNow': '今すぐ更新して再起動',
     'update.applyNote': 'ダウンロード後、自動で再起動して更新を適用します。'
 } as const;

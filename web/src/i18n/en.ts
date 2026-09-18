@@ -263,9 +263,10 @@ export const en: Messages = {
     'update.recheck': 'Re-check',
     'update.toast': 'A new version v{latest} is available. You can update it from Help.',
     'update.modal.title': 'Version v{latest} is available',
-    'update.modal.body': 'Updating brings bug fixes and new features. You can update now, or later from Help.',
+    'update.modal.body': 'Updates bring bug fixes and new features. Update now, or later from the "Update available" button at the bottom left.',
     'update.later': 'Later',
-    'update.modal.help': 'Details in Help',
+    'update.navButton': 'Update available',
+    'update.modal.help': 'Details',
     'update.applyNow': 'Update and restart now',
     'update.applyNote': 'The app restarts automatically after the download and applies the update.'
 };

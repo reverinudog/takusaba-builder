@@ -113,6 +113,12 @@
     flex-shrink: 0;
 }
 
+.navUpdate {
+    margin: 8px 2px 0;
+    width: 100%;
+    justify-content: center;
+}
+
 .status {
     display: flex;
     align-items: center;
