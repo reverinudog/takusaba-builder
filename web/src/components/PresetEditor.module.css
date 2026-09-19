@@ -268,6 +268,12 @@
     line-height: 1.6;
 }
 
+/* Distinguish the channel-structure panel from the per-channel post panels below it */
+.channelsCard {
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg-1));
+    border-color: rgba(61, 220, 151, 0.22);
+}
+
 .noPost {
     font-size: var(--fs-xs);
     color: var(--fg-3);

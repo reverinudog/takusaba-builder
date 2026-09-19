@@ -164,6 +164,9 @@
 
 .defLabel {
     color: var(--fg-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .defValue {
@@ -301,4 +304,99 @@
 
 .openLink:hover {
     text-decoration: underline;
+}
+
+.defMuted {
+    color: var(--fg-3);
+    font-weight: 400;
+}
+
+.hiddenDesc {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    margin-bottom: 12px;
+}
+
+.hiddenList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hiddenRow {
+    border: 1px solid var(--line-1);
+    border-radius: var(--r-md);
+    padding: 12px;
+    background: var(--bg-2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hiddenHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hiddenName {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    color: var(--fg-0);
+}
+
+.hiddenCount {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+}
+
+.hiddenNobody {
+    color: var(--fg-3);
+}
+
+.hiddenActions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.hiddenChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.hChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line-1);
+    background: var(--bg-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-0);
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease-out);
+    max-width: 220px;
+}
+
+.hChip:hover {
+    border-color: var(--line-2);
+}
+
+.hChipOn {
+    background: var(--accent-soft);
+    border-color: var(--line-accent);
+}
+
+.hChipName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
 }

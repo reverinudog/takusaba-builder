@@ -78,11 +78,11 @@ export type RunCreateResult = {
     channels: { id?: string, name: string, success: boolean, error?: string }[],
     errors: string[]
 };
-export const runCreate = async (presetId: string, categoryName: string, memberIds: string[]): Promise<RunCreateResult> => {
+export const runCreate = async (presetId: string, categoryName: string, memberIds: string[], hiddenAccess: Record<string, string[]> = {}): Promise<RunCreateResult> => {
     return request('/run/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ presetId, categoryName, memberIds })
+        body: JSON.stringify({ presetId, categoryName, memberIds, hiddenAccess })
     });
 };
 

@@ -6,8 +6,8 @@ import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
-import Select from '../ui/Select';
 import Field from '../ui/Field';
+import PresetPicker from './PresetPicker';
 import Card from '../ui/Card';
 import Modal from '../ui/Modal';
 import Badge from '../ui/Badge';
@@ -26,6 +26,7 @@ export default function Runner({ guildId }: { guildId: string }) {
     const [categoryName, setCategoryName] = useState('');
     const [members, setMembers] = useState<api.Member[]>([]);
     const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+    const [hiddenAccess, setHiddenAccess] = useState<Record<string, Set<string>>>({});
     const [filterText, setFilterText] = useState('');
     const [debugLog, setDebugLog] = useState<string | null>(null);
 
@@ -56,8 +57,13 @@ export default function Runner({ guildId }: { guildId: string }) {
         if (!selectedPresetId || !categoryName) return;
         setLoading(true);
         setResult(null);
+        const access: Record<string, string[]> = {};
+        for (const ch of hiddenChannels) {
+            const ids = Array.from(hiddenAccess[ch.key] ?? []).filter(id => selectedMembers.has(id));
+            if (ids.length > 0) access[ch.key] = ids;
+        }
         try {
-            const res = await api.runCreate(selectedPresetId, categoryName, Array.from(selectedMembers));
+            const res = await api.runCreate(selectedPresetId, categoryName, Array.from(selectedMembers), access);
             setResult(res);
             setShowConfirm(false);
         } catch (e) {
@@ -69,9 +75,30 @@ export default function Runner({ guildId }: { guildId: string }) {
 
     const toggleMember = (id: string) => {
         const newSet = new Set(selectedMembers);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+            const access: Record<string, Set<string>> = {};
+            for (const [k, s] of Object.entries(hiddenAccess)) {
+                const ns = new Set(s);
+                ns.delete(id);
+                access[k] = ns;
+            }
+            setHiddenAccess(access);
+        } else {
+            newSet.add(id);
+        }
         setSelectedMembers(newSet);
+    };
+
+    const toggleHiddenAccess = (channelKey: string, memberId: string) => {
+        const cur = new Set(hiddenAccess[channelKey] ?? []);
+        if (cur.has(memberId)) cur.delete(memberId);
+        else cur.add(memberId);
+        setHiddenAccess({ ...hiddenAccess, [channelKey]: cur });
+    };
+
+    const setHiddenAccessAll = (channelKey: string, on: boolean) => {
+        setHiddenAccess({ ...hiddenAccess, [channelKey]: on ? new Set(selectedMembers) : new Set() });
     };
 
     // Validation
@@ -88,6 +115,9 @@ export default function Runner({ guildId }: { guildId: string }) {
     };
 
     const selectedPreset = presets.find(p => p.presetId === selectedPresetId);
+    const hiddenChannels = selectedPreset?.channels.filter(c => c.isHidden) ?? [];
+    const selectedMemberList = members.filter(m => selectedMembers.has(m.id));
+    const memberName = (m: api.Member) => m.global_name || m.username;
 
     const filteredMembers = useMemo(() => members.filter(m =>
         m.username.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -107,17 +137,16 @@ export default function Runner({ guildId }: { guildId: string }) {
                             required
                             error={touched.preset && !isPresetValid ? t('run.presetErr') : undefined}
                         >
-                            <Select
+                            <PresetPicker
+                                presets={presets}
                                 value={selectedPresetId}
-                                onChange={e => setSelectedPresetId(e.target.value)}
-                                onBlur={() => setTouched({ ...touched, preset: true })}
+                                onChange={id => {
+                                    setSelectedPresetId(id);
+                                    setHiddenAccess({});
+                                }}
+                                onBlur={() => setTouched(prev => ({ ...prev, preset: true }))}
                                 invalid={touched.preset && !isPresetValid}
-                            >
-                                <option value="">{t('run.presetPick')}</option>
-                                {presets.map(p => (
-                                    <option key={p.presetId} value={p.presetId}>{p.presetName}</option>
-                                ))}
-                            </Select>
+                            />
                         </Field>
 
                         <Field
@@ -229,6 +258,62 @@ export default function Runner({ guildId }: { guildId: string }) {
                     )}
                 </Card>
 
+                {hiddenChannels.length > 0 && (
+                    <Card header={<><Lock size={16} /> {t('run.hidden.title')}</>}>
+                        <div className={styles.hiddenDesc}>{t('run.hidden.desc')}</div>
+                        {selectedMembers.size === 0 ? (
+                            <Callout tone="info">{t('run.hidden.noMembers')}</Callout>
+                        ) : (
+                            <div className={styles.hiddenList}>
+                                {hiddenChannels.map(ch => {
+                                    const allowed = hiddenAccess[ch.key] ?? new Set<string>();
+                                    return (
+                                        <div key={ch.key} className={styles.hiddenRow}>
+                                            <div className={styles.hiddenHead}>
+                                                <span className={styles.hiddenName}>
+                                                    <Lock size={13} /> {ch.name}
+                                                </span>
+                                                <span className={styles.hiddenCount}>
+                                                    {t('run.hidden.count', { n: allowed.size, m: selectedMembers.size })}
+                                                    {allowed.size === 0 && (
+                                                        <span className={styles.hiddenNobody}> — {t('run.hidden.nobody')}</span>
+                                                    )}
+                                                </span>
+                                                <span className={styles.hiddenActions}>
+                                                    <Button variant="ghost" size="sm" onClick={() => setHiddenAccessAll(ch.key, true)}>
+                                                        {t('run.hidden.all')}
+                                                    </Button>
+                                                    <Button variant="ghost" size="sm" onClick={() => setHiddenAccessAll(ch.key, false)}>
+                                                        {t('run.hidden.none')}
+                                                    </Button>
+                                                </span>
+                                            </div>
+                                            <div className={styles.hiddenChips}>
+                                                {selectedMemberList.map(m => {
+                                                    const on = allowed.has(m.id);
+                                                    return (
+                                                        <span
+                                                            key={m.id}
+                                                            role="checkbox"
+                                                            aria-checked={on}
+                                                            className={`${styles.hChip} ${on ? styles.hChipOn : ''}`}
+                                                            onClick={() => toggleHiddenAccess(ch.key, m.id)}
+                                                        >
+                                                            <Avatar src={avatarUrl(m)} name={memberName(m)} size={20} />
+                                                            <span className={styles.hChipName}>{memberName(m)}</span>
+                                                            {on && <Check size={12} />}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </Card>
+                )}
+
                 <div className={styles.runRow}>
                     <Button size="lg" icon={<ArrowRight size={18} />} onClick={handleConfirmClick} loading={loading}>
                         {t('run.check')}
@@ -267,6 +352,18 @@ export default function Runner({ guildId }: { guildId: string }) {
                             <span className={styles.defLabel}>{t('run.confirm.members')}</span>
                             <span className={styles.defValue}>{t('run.confirm.membersVal', { n: selectedMembers.size })}</span>
                         </div>
+                        {hiddenChannels.map(ch => {
+                            const allowed = hiddenAccess[ch.key] ?? new Set<string>();
+                            const names = selectedMemberList.filter(m => allowed.has(m.id)).map(memberName);
+                            return (
+                                <div key={ch.key} className={styles.defRow}>
+                                    <span className={styles.defLabel}><Lock size={12} /> {ch.name}</span>
+                                    <span className={`${styles.defValue} ${names.length === 0 ? styles.defMuted : ''}`}>
+                                        {names.length > 0 ? names.join(', ') : t('run.hidden.nobody')}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </Modal>
             )}

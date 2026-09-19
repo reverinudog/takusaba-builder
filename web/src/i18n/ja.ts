@@ -116,6 +116,17 @@ export const ja = {
     'run.result.errors': 'エラー詳細 (コピー用)',
     'run.result.channels': 'チャンネル作成状況',
     'run.th.name': 'チャンネル名',
+    'run.presetSearchPh': 'プリセット名で検索、またはクリックして一覧から選ぶ',
+    'run.presetNoMatch': '該当するプリセットがありません',
+    'run.presetClear': '選択を解除',
+    'run.presetHiddenMeta': '秘匿あり',
+    'run.hidden.title': '秘匿チャンネルの閲覧者',
+    'run.hidden.desc': '秘匿チャンネルは通常、参加者には見えません（GM と管理者のみ）。特定の参加者にも見せたい場合は、ここで人を選んでください。',
+    'run.hidden.noMembers': '先に上で参加者を選ぶと、秘匿チャンネルを見せる人をここで選べます。',
+    'run.hidden.all': '全員',
+    'run.hidden.none': 'なし',
+    'run.hidden.count': '{n} / {m} 人が閲覧可',
+    'run.hidden.nobody': '参加者には見えません（GM・管理者のみ）',
 
     // Cleaner
     'clean.title': '卓の片付け（カテゴリ削除）',

@@ -211,7 +211,7 @@ app.post('/api/assets/upload', (req, res) => {
 // Run Operations
 app.post('/api/run/create', async (req, res) => {
     try {
-        const { presetId, categoryName, memberIds } = req.body ?? {};
+        const { presetId, categoryName, memberIds, hiddenAccess } = req.body ?? {};
         if (
             typeof presetId !== 'string' ||
             typeof categoryName !== 'string' || categoryName.length < 1 || categoryName.length > 100 ||
@@ -219,8 +219,20 @@ app.post('/api/run/create', async (req, res) => {
         ) {
             return res.status(400).json({ error: 'INVALID_FIELDS' });
         }
+        const hiddenAccessValid =
+            hiddenAccess === undefined ||
+            (hiddenAccess !== null && typeof hiddenAccess === 'object' && !Array.isArray(hiddenAccess) &&
+                Object.keys(hiddenAccess).length <= 50 &&
+                Object.entries(hiddenAccess).every(([k, v]) =>
+                    typeof k === 'string' && k.length >= 1 && k.length <= 64 &&
+                    Array.isArray(v) && v.length <= 500 && v.every(isSnowflake) &&
+                    v.every((id: string) => memberIds.includes(id))
+                ));
+        if (!hiddenAccessValid) {
+            return res.status(400).json({ error: 'INVALID_FIELDS' });
+        }
 
-        const result = await operations.runCreate(presetId, categoryName, memberIds);
+        const result = await operations.runCreate(presetId, categoryName, memberIds, hiddenAccess ?? {});
         res.json(result);
     } catch (e: any) {
         console.error("Create run failed:", e);

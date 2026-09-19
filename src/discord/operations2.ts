@@ -77,8 +77,8 @@ export const getGuildCategories = async () => {
     }
 };
 
-export const runCreate = async (presetId: string, categoryName: string, memberIds: string[]) => {
-    console.log(`[runCreate] Starting for preset=${presetId}, category=${categoryName}, members=${memberIds.length}`);
+export const runCreate = async (presetId: string, categoryName: string, memberIds: string[], hiddenAccess: Record<string, string[]> = {}) => {
+    console.log(`[runCreate] Starting for preset=${presetId}, category=${categoryName}, members=${memberIds.length}, hiddenAccessKeys=${Object.keys(hiddenAccess).length}`);
     const presets = getPresets();
     const preset = presets.find(p => p.presetId === presetId);
     if (!preset) throw new Error(`Preset ${presetId} not found`);
@@ -125,7 +125,8 @@ export const runCreate = async (presetId: string, categoryName: string, memberId
 
                 let channelOverwrites = overwrites;
                 if (ch.isHidden) {
-                    channelOverwrites = overwrites.filter((o: any) => !memberIds.includes(o.id));
+                    const allowed = new Set(hiddenAccess[ch.key] ?? []);
+                    channelOverwrites = overwrites.filter((o: any) => !memberIds.includes(o.id) || allowed.has(o.id));
                 }
 
                 const channelType = ch.type === 'voice' ? 2 : 0;

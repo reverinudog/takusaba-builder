@@ -275,6 +275,7 @@ export default function PresetEditor() {
 
                                 {/* Channels Section */}
                                 <Card
+                                    className={styles.channelsCard}
                                     header={t('preset.channels')}
                                     actions={
                                         <>
