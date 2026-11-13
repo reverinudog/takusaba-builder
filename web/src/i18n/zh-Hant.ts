@@ -40,6 +40,9 @@ export const zhHant: Messages = {
 
     'preset.new': '新增預設',
     'preset.list': '預設',
+    'preset.filterPh': '篩選預設',
+    'preset.reorderFail': '無法儲存排序：{msg}',
+    'preset.dragHint': '拖曳以調整順序',
     'preset.empty.title': '尚無預設',
     'preset.empty.desc': '可以把每次跑團都要用的頻道版面儲存為預設',
     'preset.pick.title': '選擇或建立預設',

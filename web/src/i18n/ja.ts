@@ -44,6 +44,9 @@ export const ja = {
     // Preset editor
     'preset.new': '新規プリセット',
     'preset.list': 'プリセット',
+    'preset.filterPh': 'プリセットを絞り込み',
+    'preset.reorderFail': '並び順を保存できませんでした: {msg}',
+    'preset.dragHint': 'ドラッグで並び替え',
     'preset.empty.title': 'プリセットがありません',
     'preset.empty.desc': '卓で毎回使うチャンネル構成をプリセットとして登録できます',
     'preset.pick.title': 'プリセットを選択または作成',

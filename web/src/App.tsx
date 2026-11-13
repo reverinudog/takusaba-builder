@@ -40,6 +40,10 @@ function LangCards({ selected, onSelect }: { selected: Lang; onSelect: (l: Lang)
 function LangPickScreen({ onDone }: { onDone: () => void }) {
     const { lang, setLang, t } = useI18n();
     const handleDone = () => {
+        // Persist the choice even when the user kept the auto-detected default:
+        // packaged builds load from a random port each launch, so localStorage
+        // alone does not survive restarts — the server config does.
+        setLang(lang);
         // First-run seed: writes sample presets in the chosen language,
         // only when the user has no presets yet (server-side guard).
         api.seedPresets(lang).catch(() => { /* best-effort */ });
@@ -92,7 +96,7 @@ function Shell() {
             clearTimeout(first);
             if (updatePollRef.current) clearInterval(updatePollRef.current);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, []);
 
     // Open the modal when an update becomes available/downloaded (once per key)
@@ -108,7 +112,7 @@ function Shell() {
         if (!updateModalOpen) return;
         const iv = setInterval(pollUpdate, 2000);
         return () => clearInterval(iv);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [updateModalOpen]);
 
     const refreshStatus = () =>
@@ -121,10 +125,16 @@ function Shell() {
         refreshStatus();
     }, []);
 
-    // Server-saved language wins over localStorage once status is known
+    // Server-saved language wins over localStorage once status is known.
+    // If only localStorage has one (older versions / web), copy it to the
+    // server so it survives the packaged app's per-launch origin change.
     useEffect(() => {
-        if (status?.language && VALID_LANGS.has(status.language) && status.language !== lang) {
-            setLang(status.language as Lang);
+        if (!status) return;
+        if (status.language && VALID_LANGS.has(status.language)) {
+            if (status.language !== lang) setLang(status.language as Lang, false);
+        } else {
+            const stored = storedLang();
+            if (stored) setLang(stored);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);

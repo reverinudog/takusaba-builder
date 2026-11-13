@@ -91,9 +91,29 @@ export const saveConfig = (cfg: AppConfig): void => {
     applyConfig(cached);
 };
 
-// Partial update preserving fields not present in `partial`
+const readStored = (): StoredConfig => {
+    try {
+        return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8')) ?? {};
+    } catch {
+        return {};
+    }
+};
+
+// Partial update preserving fields not present in `partial`.
+// When the token is not being changed, the stored token fields are copied
+// verbatim: re-encoding the in-memory token would wipe `tokenEnc` whenever it
+// could not be decrypted (no codec in a dev run, OS key change, ...).
 export const updateConfig = (partial: Partial<AppConfig>): void => {
-    saveConfig({ ...loadConfig(), ...partial });
+    if (partial.token !== undefined) {
+        saveConfig({ ...loadConfig(), ...partial });
+        return;
+    }
+    const stored: StoredConfig = { ...readStored() };
+    if (partial.guildId !== undefined) stored.guildId = partial.guildId;
+    if (partial.language !== undefined) stored.language = partial.language;
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(stored, null, 2));
+    // Token is unchanged, so the REST client needs no re-apply
+    cached = { ...loadConfig(), ...partial };
 };
 
 export const isConfigured = (): boolean => {

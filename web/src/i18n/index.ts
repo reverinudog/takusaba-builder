@@ -39,7 +39,7 @@ export const storedLang = (): Lang | null => {
 
 interface I18nCtx {
     lang: Lang;
-    setLang: (l: Lang) => void;
+    setLang: (l: Lang, persist?: boolean) => void;
     t: (key: MsgKey, params?: Record<string, string | number>) => string;
 }
 
@@ -52,10 +52,12 @@ const applyDomLang = (l: Lang) => {
 export function I18nProvider({ children }: { children: ReactNode }) {
     const [lang, setLangState] = useState<Lang>(() => storedLang() ?? detectLang(navigator.language));
 
-    const setLang = useCallback((l: Lang) => {
+    // persist=false when the value just came from the server (no echo write)
+    const setLang = useCallback((l: Lang, persist = true) => {
         setLangState(l);
         localStorage.setItem(LANG_STORAGE_KEY, l);
         applyDomLang(l);
+        if (!persist) return;
         fetch('/api/setup/language', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

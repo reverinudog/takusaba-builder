@@ -7,6 +7,25 @@ const move = <T>(arr: T[], from: number, to: number): T[] => {
     return next;
 };
 
+// Moves `fromId` to the position currently held by `toId`. Returns the same
+// array when either id is missing or they are equal (no re-render needed).
+export const moveById = (ids: string[], fromId: string, toId: string): string[] => {
+    const from = ids.indexOf(fromId);
+    const to = ids.indexOf(toId);
+    return from < 0 || to < 0 || from === to ? ids : move(ids, from, to);
+};
+
+// Orders presets by `ids`; presets missing from `ids` keep their relative
+// order at the end (mirrors the server's reorderPresets).
+export const orderPresets = (presets: Preset[], ids: string[]): Preset[] => {
+    const rank = new Map(ids.map((id, i) => [id, i]));
+    const r = (p: Preset, i: number) => rank.get(p.presetId) ?? ids.length + i;
+    return presets
+        .map((p, i) => ({ p, k: r(p, i) }))
+        .sort((a, b) => a.k - b.k)
+        .map(x => x.p);
+};
+
 // Applies fn to the items array of the posts entry for channelKey.
 // Returns the preset unchanged if no such posts entry exists.
 const mapPostItems = (preset: Preset, channelKey: string, fn: (items: PresetPostItem[]) => PresetPostItem[]): Preset => {

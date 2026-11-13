@@ -1,11 +1,12 @@
-import { useRef, useState, useEffect, type CSSProperties } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
-    Plus, Copy, Trash2, GripVertical, Hash, Volume2, Lock, Unlock,
+    Plus, Trash2, GripVertical, Hash, Volume2, Lock, Unlock,
     X, Type, ImagePlus, Save, LayoutList, MousePointerClick
 } from 'lucide-react';
 import type { Preset, PresetPostItem } from '../types';
 import * as api from '../api';
 import * as editor from './presetEditorState';
+import PresetList from './PresetList';
 import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
 import Input from '../ui/Input';
@@ -169,6 +170,17 @@ export default function PresetEditor() {
         }
     };
 
+    // Optimistic: reorder locally, then persist; reload from the server on failure
+    const handleReorder = async (ids: string[]) => {
+        setPresets(list => editor.orderPresets(list, ids));
+        try {
+            await api.reorderPresets(ids);
+        } catch (e) {
+            toast(t('preset.reorderFail', { msg: errMsg(e) }), 'error');
+            loadPresets();
+        }
+    };
+
     // Drag and Drop Logic for Channels
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
@@ -220,7 +232,6 @@ export default function PresetEditor() {
             {/* Sidebar: Preset List */}
             <div className={styles.listPane}>
                 <Button icon={<Plus size={16} />} onClick={handleCreate}>{t('preset.new')}</Button>
-                <div className={styles.listHeading}>{t('preset.list')}</div>
                 {presets.length === 0 && !editingPreset ? (
                     <EmptyState
                         icon={<LayoutList size={28} />}
@@ -228,32 +239,17 @@ export default function PresetEditor() {
                         description={t('preset.empty.desc')}
                     />
                 ) : (
-                    <div className={`${styles.list} stagger`}>
-                        {editingPreset && !presets.some(p => p.presetId === editingPreset.presetId) && (
-                            <div className={`${styles.presetRow} ${styles.selected}`}>
-                                <span className={styles.presetName}>{editingPreset.presetName}</span>
-                                <Badge tone="warning">{t('unsaved.listBadge')}</Badge>
-                            </div>
-                        )}
-                        {presets.map((p, i) => (
-                            <div
-                                key={p.presetId}
-                                className={`${styles.presetRow} ${selectedPresetId === p.presetId ? styles.selected : ''}`}
-                                style={{ '--i': i } as CSSProperties}
-                                onClick={() => handleSelect(p.presetId)}
-                            >
-                                <span className={styles.presetName}>{p.presetName}</span>
-                                <div className={styles.rowActions}>
-                                    <IconButton size="sm" title={t('preset.duplicate')} onClick={(e) => handleDuplicate(p, e)}>
-                                        <Copy size={13} />
-                                    </IconButton>
-                                    <IconButton size="sm" tone="danger" title={t('preset.delete')} onClick={(e) => requestDeletePreset(p.presetId, e)}>
-                                        <Trash2 size={13} />
-                                    </IconButton>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <PresetList
+                        presets={presets}
+                        selectedId={selectedPresetId}
+                        unsavedName={editingPreset && !presets.some(p => p.presetId === editingPreset.presetId)
+                            ? editingPreset.presetName
+                            : null}
+                        onSelect={handleSelect}
+                        onDuplicate={handleDuplicate}
+                        onDelete={requestDeletePreset}
+                        onReorder={handleReorder}
+                    />
                 )}
             </div>
 

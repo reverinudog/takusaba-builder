@@ -162,6 +162,20 @@ app.post('/api/presets', (req, res) => {
     }
 });
 
+// Persists the preset list order (drag-and-drop in the editor sidebar)
+app.post('/api/presets/order', (req, res) => {
+    try {
+        const ids = req.body?.ids;
+        const valid = Array.isArray(ids) && ids.length <= 10000 &&
+            ids.every((id: unknown) => typeof id === 'string' && /^[\w-]{1,64}$/.test(id));
+        if (!valid) return res.status(400).json({ error: 'INVALID_ORDER' });
+        data.reorderPresets(ids);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.delete('/api/presets/:id', (req, res) => {
     try {
         if (!/^[\w-]{1,64}$/.test(req.params.id)) return res.status(400).json({ error: 'INVALID_PRESET_ID' });

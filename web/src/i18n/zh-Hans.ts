@@ -40,6 +40,9 @@ export const zhHans: Messages = {
 
     'preset.new': '新建预设',
     'preset.list': '预设',
+    'preset.filterPh': '筛选预设',
+    'preset.reorderFail': '无法保存排序：{msg}',
+    'preset.dragHint': '拖动以调整顺序',
     'preset.empty.title': '暂无预设',
     'preset.empty.desc': '可以把每次跑团都要用的频道布局保存为预设',
     'preset.pick.title': '选择或创建预设',

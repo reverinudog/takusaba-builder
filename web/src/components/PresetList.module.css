@@ -1,0 +1,139 @@
+.filterWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filterIcon {
+    position: absolute;
+    left: 10px;
+    color: var(--fg-3);
+    pointer-events: none;
+}
+
+.filterWrap .filterInput {
+    width: 100%;
+    padding-left: 30px;
+    padding-right: 28px;
+}
+
+.filterClear {
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--fg-2);
+    cursor: pointer;
+}
+
+.filterClear:hover {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+}
+
+.noMatch {
+    padding: 8px 4px;
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+}
+
+.grip {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--fg-3);
+    cursor: grab;
+    opacity: 0;
+    transition: opacity var(--t-base) var(--ease-out);
+}
+
+.presetRow:hover .grip {
+    opacity: 1;
+}
+
+.presetRow.dragging {
+    opacity: 0.5;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.presetRow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 8px 8px 6px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    color: var(--fg-1);
+    transition:
+        background-color var(--t-base) var(--ease-out),
+        color var(--t-base) var(--ease-out);
+}
+
+.presetRow:hover {
+    background: var(--bg-hover);
+    color: var(--fg-0);
+}
+
+.presetRow::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 2px;
+    height: 60%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: transform var(--t-base) var(--ease-out);
+}
+
+.presetRow.selected {
+    background: var(--bg-active);
+    color: var(--fg-0);
+}
+
+.presetRow.selected::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+.presetName {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+}
+
+.rowActions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-base) var(--ease-out);
+}
+
+.presetRow:hover .rowActions,
+.presetRow.selected .rowActions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Keeps the unsaved row's name aligned with rows that have a grip */
+.gripSpacer {
+    width: 13px;
+    flex-shrink: 0;
+}

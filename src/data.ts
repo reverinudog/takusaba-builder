@@ -28,6 +28,22 @@ export const deletePreset = (presetId: string): void => {
     fs.writeFileSync(PRESETS_FILE, JSON.stringify(newPresets, null, 2));
 };
 
+// Reorders presets to follow `ids`. Unknown ids are ignored; presets missing
+// from `ids` keep their relative order at the end, so nothing is ever dropped.
+export const reorderPresets = (ids: string[]): void => {
+    const presets = getPresets();
+    const rank = new Map(ids.map((id, i) => [id, i]));
+    const ordered = presets
+        .map((p, i) => ({ p, i }))
+        .sort((a, b) => {
+            const ra = rank.get(a.p.presetId) ?? ids.length + a.i;
+            const rb = rank.get(b.p.presetId) ?? ids.length + b.i;
+            return ra - rb;
+        })
+        .map(x => x.p);
+    fs.writeFileSync(PRESETS_FILE, JSON.stringify(ordered, null, 2));
+};
+
 export const getAssetPath = (assetId: string): string | null => {
     // In a real app we might store metadata separately, but here we assume filename is assetId or we scan dir
     // The requirement says "presets.json doesn't store absolute path, only assetId".

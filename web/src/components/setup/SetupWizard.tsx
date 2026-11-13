@@ -135,7 +135,6 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                 {mode === 'reconfigure' && (
                     <div className={styles.reconfigRow}>
                         <Callout tone="info">{t('wiz.reconfig')}</Callout>
-                        {onCancel && <Button variant="ghost" onClick={onCancel}>{t('common.back')}</Button>}
                     </div>
                 )}
                 <div key={step} className="anim-rise">
@@ -405,7 +404,14 @@ export default function SetupWizard({ mode, onComplete, onCancel }: Props) {
                         {/* Footer nav */}
                         {step < 4 && (
                             <div className={styles.footerRow}>
-                                <Button variant="ghost" onClick={back} disabled={step === 0}>{t('common.back')}</Button>
+                                {/* On the first step of reconfigure, "back" leaves the wizard */}
+                                <Button
+                                    variant="ghost"
+                                    onClick={step === 0 && onCancel ? onCancel : back}
+                                    disabled={step === 0 && !onCancel}
+                                >
+                                    {t('common.back')}
+                                </Button>
                                 <Button onClick={next} disabled={!canNext}>
                                     {step === 1 ? t('wiz.next1') : step === 3 ? t('wiz.next3') : t('common.next')}
                                 </Button>

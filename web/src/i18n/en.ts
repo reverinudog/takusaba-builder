@@ -40,6 +40,9 @@ export const en: Messages = {
 
     'preset.new': 'New preset',
     'preset.list': 'Presets',
+    'preset.filterPh': 'Filter presets',
+    'preset.reorderFail': 'Could not save the order: {msg}',
+    'preset.dragHint': 'Drag to reorder',
     'preset.empty.title': 'No presets',
     'preset.empty.desc': 'Save channel layouts you reuse for sessions as presets',
     'preset.pick.title': 'Select or create a preset',

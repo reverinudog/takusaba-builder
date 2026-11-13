@@ -37,36 +37,45 @@ if (process.platform === 'darwin') {
 }
 
 // Native-dialog strings, keyed by the language stored in data/config.json.
-const DIALOG_STRINGS: Record<string, { unsavedTitle: string; unsavedMsg: string; close: string; cancel: string; startFail: string }> = {
+type DialogStrings = {
+    unsavedTitle: string; unsavedMsg: string; close: string; cancel: string; startFail: string;
+    undo: string; redo: string; cut: string; copy: string; paste: string; selectAll: string;
+};
+const DIALOG_STRINGS: Record<string, DialogStrings> = {
     ja: {
         unsavedTitle: '未保存の変更',
         unsavedMsg: '保存していない変更があります。閉じると失われます。',
         close: '閉じる', cancel: 'キャンセル',
-        startFail: '起動に失敗しました'
+        startFail: '起動に失敗しました',
+        undo: '元に戻す', redo: 'やり直し', cut: '切り取り', copy: 'コピー', paste: '貼り付け', selectAll: 'すべて選択'
     },
     en: {
         unsavedTitle: 'Unsaved changes',
         unsavedMsg: 'You have unsaved changes. They will be lost if you close.',
         close: 'Close', cancel: 'Cancel',
-        startFail: 'Failed to start'
+        startFail: 'Failed to start',
+        undo: 'Undo', redo: 'Redo', cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All'
     },
     ko: {
         unsavedTitle: '저장되지 않은 변경 사항',
         unsavedMsg: '저장하지 않은 변경 사항이 있습니다. 닫으면 사라집니다.',
         close: '닫기', cancel: '취소',
-        startFail: '시작에 실패했습니다'
+        startFail: '시작에 실패했습니다',
+        undo: '실행 취소', redo: '다시 실행', cut: '잘라내기', copy: '복사', paste: '붙여넣기', selectAll: '모두 선택'
     },
     'zh-Hans': {
         unsavedTitle: '未保存的更改',
         unsavedMsg: '有未保存的更改，关闭后将丢失。',
         close: '关闭', cancel: '取消',
-        startFail: '启动失败'
+        startFail: '启动失败',
+        undo: '撤销', redo: '重做', cut: '剪切', copy: '复制', paste: '粘贴', selectAll: '全选'
     },
     'zh-Hant': {
         unsavedTitle: '未儲存的變更',
         unsavedMsg: '有未儲存的變更，關閉後將會遺失。',
         close: '關閉', cancel: '取消',
-        startFail: '啟動失敗'
+        startFail: '啟動失敗',
+        undo: '復原', redo: '重做', cut: '剪下', copy: '複製', paste: '貼上', selectAll: '全選'
     }
 };
 
@@ -244,6 +253,28 @@ const createWindow = async () => {
             message: d.unsavedMsg
         });
         if (r === 0) e.preventDefault();
+    });
+
+    // Electron has no default context menu — provide cut/copy/paste so a token
+    // copied from the Developer Portal can be pasted with a right-click.
+    win.webContents.on('context-menu', (_e, params) => {
+        const d = dialogStrings();
+        const f = params.editFlags;
+        const template: Electron.MenuItemConstructorOptions[] = params.isEditable
+            ? [
+                { label: d.undo, role: 'undo', enabled: f.canUndo },
+                { label: d.redo, role: 'redo', enabled: f.canRedo },
+                { type: 'separator' },
+                { label: d.cut, role: 'cut', enabled: f.canCut },
+                { label: d.copy, role: 'copy', enabled: f.canCopy },
+                { label: d.paste, role: 'paste', enabled: f.canPaste },
+                { type: 'separator' },
+                { label: d.selectAll, role: 'selectAll', enabled: f.canSelectAll }
+            ]
+            : params.selectionText.trim()
+                ? [{ label: d.copy, role: 'copy' }]
+                : [];
+        if (template.length) Menu.buildFromTemplate(template).popup({ window: win });
     });
 
     if (!app.isPackaged) {

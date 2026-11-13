@@ -43,6 +43,14 @@ export const savePreset = async (preset: Preset): Promise<{ success: boolean, pr
     });
 };
 
+export const reorderPresets = async (ids: string[]): Promise<{ success: boolean }> => {
+    return request('/presets/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+    });
+};
+
 export const deletePreset = async (presetId: string): Promise<void> => {
     return request(`/presets/${presetId}`, { method: 'DELETE' });
 };

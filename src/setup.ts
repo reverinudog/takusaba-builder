@@ -1,7 +1,7 @@
 import express from 'express';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { loadConfig, saveConfig, updateConfig, isConfigured, AppConfig } from './config';
+import { loadConfig, updateConfig, isConfigured, AppConfig } from './config';
 import { fetchMembers } from './discord/client2';
 import {
     BOT_INVITE_PERMISSIONS,
@@ -124,7 +124,8 @@ router.post('/save', (req, res) => {
         if (typeof token !== 'string' || token.length < 1 || token.length > 200 || !isSnowflake(guildId)) {
             return res.status(400).json({ ok: false, code: 'INVALID_FIELDS', message: 'token must be 1-200 chars and guildId must be a Discord snowflake' });
         }
-        saveConfig({ token, guildId });
+        // updateConfig keeps the saved language (saveConfig would drop it)
+        updateConfig({ token, guildId });
         guildNameCache = null;
         res.json({ ok: true, configured: true });
     } catch (e: any) {

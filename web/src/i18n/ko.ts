@@ -40,6 +40,9 @@ export const ko: Messages = {
 
     'preset.new': '새 프리셋',
     'preset.list': '프리셋',
+    'preset.filterPh': '프리셋 필터',
+    'preset.reorderFail': '순서를 저장하지 못했습니다: {msg}',
+    'preset.dragHint': '드래그해서 순서 변경',
     'preset.empty.title': '프리셋이 없습니다',
     'preset.empty.desc': '세션에서 매번 쓰는 채널 구성을 프리셋으로 저장할 수 있습니다',
     'preset.pick.title': '프리셋을 선택하거나 만드세요',
